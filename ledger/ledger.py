@@ -84,9 +84,13 @@ class Ledger:
                 encoding="latin1",
                 skiprows=6,
             )
-            df = df[["Buchungstag", "Auftraggeber / Begünstigter", "Betrag (EUR)"]]
-            df.columns = ["date", "recipient", "amount"]
-            self.transactions = pd.concat([self.transactions, df])
+
+            date_index = 0
+            recipient_index = 3
+            amount_index = 7
+            tmp = df.iloc[:, [date_index, recipient_index, amount_index]].copy()
+            tmp.columns = ["date", "recipient", "amount"]
+            self.transactions = pd.concat([self.transactions, tmp])
 
     def init_metadata(self, output_path: Path, export_path: Optional[Path]) -> None:
         """Calculates starting balance from export."""
@@ -110,8 +114,8 @@ class Ledger:
             end_balance = locale.atof(header.iloc[2, 1].replace(" EUR", ""))
             revenue = self.transactions["amount"].sum()
 
-            self.metadata = (
-                pd.DataFrame({"starting_balance": [float(end_balance - revenue)]}),
+            self.metadata = pd.DataFrame(
+                {"starting_balance": [float(end_balance - revenue)]}
             )
 
     def init_mappingtable(self, output_path: Path) -> None:
