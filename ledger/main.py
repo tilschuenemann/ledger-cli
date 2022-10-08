@@ -2,173 +2,78 @@ from pathlib import Path
 import pandas as pd
 import datetime
 import csv
-
-
-class Transaction:
-    def __init__(self, 
-        amount: float, 
-        recipient: str, 
-        date: datetime.datetime,
-        recipient_clean: str=None,
-        label1: str=None,
-        label2: str=None,
-        label3: str=None,
-        occurence: int=None,
-        amount_custom: float=0,
-        date_custom: datetime.datetime=None,
-        recipient_clean_custom: str=None,
-        label1_custom: str=None,
-        label2_custom: str=None,
-        label3_custom: str=None ,
-        occurence_custom: int=None,
-    ):
-        self.amount = amount
-        self.recipient = recipient
-        self.date = date
-        self.recipient_clean = recipient_clean
-        self.label1 = label1
-        self.label2 = label2
-        self.label3 = label3
-        self.occurence = occurence
-        self.amount_custom = amount_custom
-        self.date_custom = date_custom
-        self.recipient_clean_custom = recipient_clean_custom
-        self.label1_custom = label1_custom
-        self.label2_custom = label2_custom
-        self.label3_custom = label3_custom
-        self.occurence_custom = occurence_custom
-
-    def __iter__(self):
-        return iter(
-            [
-                self.amount,
-                self.date,
-                self.recipient,
-                self.recipient_clean,
-                self.label1,
-                self.label2,
-                self.label3,
-                self.occurence,
-                self.amount_custom,
-                self.date_custom,
-                self.recipient_clean_custom,
-                self.label1_custom,
-                self.label2_custom,
-                self.label3_custom,
-                self.occurence_custom
-            ]
-        )
-
-
-class Mapping:
-    def __init__(self, recipient: str,recipient_clean:str=None, label1: str=None,label2: str=None,label3: str=None, occurence: int=0): 
-        self.recipient = recipient
-        self.recipient_clean = recipient_clean
-        self.label1 = label1
-        self.label2 = label2
-        self.label3 = label3
-        self.occurence = occurence
-
-    def __iter__(self):
-        return iter(
-            [
-                self.recipient,
-                self.recipient_clean,
-                self.label1,
-                self.label2,
-                self.label3,
-                self.occurence,
-            ]
-        )
+import locale
 
 
 class Ledger:
-    def write(self, fname: str, output_path: Path, header: list, content, dialect:str="excel"):
+    def __init__(self, output_path: Path, export_path: Path = None):
+        self.transactions = pd.DataFrame(
+            {
+                "amount": pd.Series(dtype=float),
+                "date": pd.Series(dtype=object),
+                "recipient": pd.Series(dtype=str),
+                "recipient_clean": pd.Series(dtype=str),
+                "label1": pd.Series(dtype=str),
+                "label2": pd.Series(dtype=str),
+                "label3": pd.Series(dtype=str),
+                "occurence": pd.Series(dtype=int),
+                "amount_custom": pd.Series(dtype=float),
+                "date_custom": pd.Series(dtype=object),
+                "recipient_clean_custom": pd.Series(dtype=str),
+                "label1_custom": pd.Series(dtype=str),
+                "label2_custom": pd.Series(dtype=str),
+                "label3_custom": pd.Series(dtype=str),
+                "occurence_custom": pd.Series(dtype=int),
+            }
+        )
+        self.mappings = pd.DataFrame(
+            {
+                "recipient": pd.Series(dtype=str),
+                "recipient_clean": pd.Series(dtype=str),
+                "label1": pd.Series(dtype=str),
+                "label2": pd.Series(dtype=str),
+                "label3": pd.Series(dtype=str),
+                "occurence": pd.Series(dtype=int),
+            }
+        )
+        self.metadata = pd.DataFrame({"starting_balance": pd.Series(dtype=float)})
+
+        self.init_ledger(output_path, export_path)
+        self.init_metadata(output_path, export_path)
+        self.init_mappingtable(output_path)
+        self.update_mappings()
+        self._write("ledger.csv", output_path)
+        self._write("mappingtable.csv", output_path)
+        self._write("metadata.csv", output_path)
+
+    def _write(self, fname: str, output_path: Path):
+        """Writes csv to output_path."""
         tmp_path = output_path / fname
-        if fname!= ".ledger":
-            with open(tmp_path, "w") as f:
-                writer = csv.writer(f,dialect=dialect)
-                writer.writerow(header)
-                writer.writerows(content)
+        if fname == "ledger.csv":
+            self.transactions.to_csv(tmp_path, index=False)
+        elif fname == "metadata.csv":
+            self.metadata.to_csv(tmp_path, index=False)
+        elif fname == "mappingtable.csv":
+            self.mappings.to_csv(tmp_path, index=False)
         else:
-            with open(tmp_path, "w") as f:
-                writer = csv.DictWriter(f, ["starting_balance"],dialect=dialect)
-                writer.writeheader()
-                writer.writerow(self.metadata)
+            print(f"fname: {fname} not configured")
 
-
-    def write_metadata(self, output_path: Path):
-        header = ["starting_balance"]
-        self.write(fname=".ledger", output_path=output_path, header=header,content="blub")
-
-    def write_ledger(self, output_path: Path):
-        header=        [
-                        "amount",
-                        "date",
-                        "recipient",
-                        "recipient_clean",
-                        "label1",
-                        "label2",
-                        "label3",
-                        "occurence",
-                        "amount_custom",
-                        "date_custom",
-                        "recipient_clean_custom",
-                        "label1_custom",
-                        "label2_custom",
-                        "label3_custom",
-                        "occurence_custom"
-                        ]
-        self.write(fname="ledger.csv", output_path=output_path, content=self.transactions, header=header)
-            
-
-    def write_mappingtable(self, output_path: Path):
-        header = [
-                "recipient",
-                "recipient_clean",
-                "label1",
-                "label2",
-                "label3",
-                "occurence",
-            ]
-        self.write(fname="mappingtable.csv", output_path=output_path, content=self.mappings, header=header)
-        
-    def append_ledger(self, export: Path):
-        pass
-        # TODO
-        # read old ledger transactions,
-        # create set from recipients
-        # update maptab
-        # read current ledger, add transactions (direction here?)
-
-
-            
-            
     def update_mappings(self):
-        # TODO double nested loop not good
-        for mapping in self.mappings:
-            for transaction in self.transactions:
-                if transaction.recipient == mapping.recipient:
-                    transaction.recipient_clean = mapping.recipient_clean
-                    transaction.label1 = mapping.label1
-                    transaction.label2 = mapping.label2
-                    transaction.label3 = mapping.label3
-                    transaction.occurence = mapping.occurence
+        """Re-maps transactions."""
+        self.transactions = self.transactions[
+            self.transactions.columns.difference(
+                ["label1", "label2", "label3", "recipient_clean", "occurence"]
+            )
+        ].merge(self.mappings, how="left", on="recipient")
 
-    def __init__(self, output_path: Path, export_path: Path=None):
-        self.transactions = []
-        self.mappings = []
-        self.metadata = dict({"starting_balance": 0})
-
-        # create or update ledger
+    def init_ledger(self, output_path: Path, export_path: Path = None):
+        """Reads existing ledger and appends export."""
         tmp_ledger = output_path / "ledger.csv"
         if tmp_ledger.exists() is True:
-            with open(tmp_ledger) as stream:
-                reader = csv.reader(stream,dialect="excel")
-                next(reader, None)
-                for row in reader:
-                    self.transactions.append(Transaction(*row))
-        else:
+            tmp = pd.read_csv(tmp_ledger)
+            self.transactions = pd.concat([self.transactions, tmp])
+
+        if export_path != None and export_path.exists():
             df = pd.read_csv(
                 export_path,
                 sep=";",
@@ -179,57 +84,45 @@ class Ledger:
                 encoding="latin1",
                 skiprows=6,
             )
+            df = df[["Buchungstag", "Auftraggeber / Begünstigter", "Betrag (EUR)"]]
+            df.columns = ["date", "recipient", "amount"]
+            self.transactions = pd.concat([self.transactions, df])
 
-            for index, row in df.iterrows():
-                tmp_date = row["Buchungstag"]
-                tmp_amount = row["Betrag (EUR)"]
-                tmp_recipient = row["Auftraggeber / Begünstigter"]
-                self.transactions.append(
-                    Transaction(amount=tmp_amount, recipient=tmp_recipient, date=tmp_date)
-                )
+    def init_metadata(self, output_path: Path, export_path: Path = None):
+        """Calculates starting balance from export."""
+        tmp_metadata = output_path / "metadata.csv"
+        if tmp_metadata.exists() is True:
+            tmp = pd.read_csv(tmp_metadata)
+            self.metadata = pd.concat([self.metadata, tmp])
+        elif export_path != None and export_path.exists():
             header = pd.read_csv(
                 export_path,
                 sep=";",
                 decimal=",",
                 thousands=".",
                 encoding="latin1",
-                skiprows=4,
-                nrows=1,
+                skiprows=2,
+                nrows=3,
                 header=None,
             )
-            end_balance = float(
-                (
-                    header.iloc[0, 1]
-                    .replace(" EUR", "")
-                    .replace(".", "")
-                    .replace(",", ".")
-                )
+
+            locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
+            end_balance = locale.atof(header.iloc[2, 1].replace(" EUR", ""))
+            revenue = df["amount"].sum()
+
+            self.metadata = (
+                pd.DataFrame({"starting_balance": [float(end_balance - revenue)]}),
             )
-            self.metadata["starting_balance"] = end_balance - df["Betrag (EUR)"].sum()
 
-        # create ledger dotfile
-        tmp_ldot = output_path / ".ledger"
-        if tmp_ldot.exists() is True:
-            with open(tmp_ldot) as stream:
-                reader = csv.DictReader(stream)
-                for row in reader:
-                    self.metadata["starting_balance"] = row["starting_balance"]
-        else:
-            pass
-
-        # create or read mapping table from output dir
+    def init_mappingtable(self, output_path: Path):
+        """Reads mapping table and appends new recipients."""
         tmp_maptab = output_path / "mappingtable.csv"
-        if tmp_maptab.exists() is True:
-            with open(tmp_maptab) as stream:
-                reader = csv.reader(stream,dialect="excel")
-                next(reader, None)
-                for row in reader:
-                    self.mappings.append(Mapping(*row))
-        else:
-            for transaction in self.transactions:
-                self.mappings.append(Mapping(recipient=transaction.recipient))
 
-        self.update_mappings()
-        self.write_ledger(output_path)
-        self.write_mappingtable(output_path)
-        self.write_metadata(output_path)
+        if tmp_maptab.exists() is True:
+            tmp = pd.read_csv(tmp_maptab)
+            self.mappings = pd.concat([self.mappings, tmp])
+
+        new_recipients = self.transactions[
+            ~self.transactions["recipient"].isin(self.mappings["recipient"].unique())
+        ].loc[:, ["recipient"]]
+        self.mappings = pd.concat([self.mappings, new_recipients], ignore_index=True)
