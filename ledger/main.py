@@ -1,12 +1,12 @@
 from pathlib import Path
 import pandas as pd
-import datetime
-import csv
+import datetime 
+from typing import Optional
 import locale
 
 
 class Ledger:
-    def __init__(self, output_path: Path, export_path: Path = None):
+    def __init__(self, output_path: Path, export_path: Optional[Path]):
         self.transactions = pd.DataFrame(
             {
                 "amount": pd.Series(dtype=float),
@@ -46,7 +46,7 @@ class Ledger:
         self._write("mappingtable.csv", output_path)
         self._write("metadata.csv", output_path)
 
-    def _write(self, fname: str, output_path: Path):
+    def _write(self, fname: str, output_path: Path) -> None:
         """Writes csv to output_path."""
         tmp_path = output_path / fname
         if fname == "ledger.csv":
@@ -58,7 +58,7 @@ class Ledger:
         else:
             print(f"fname: {fname} not configured")
 
-    def update_mappings(self):
+    def update_mappings(self) -> None:
         """Re-maps transactions."""
         self.transactions = self.transactions[
             self.transactions.columns.difference(
@@ -66,14 +66,14 @@ class Ledger:
             )
         ].merge(self.mappings, how="left", on="recipient")
 
-    def init_ledger(self, output_path: Path, export_path: Path = None):
+    def init_ledger(self, output_path: Path, export_path: Optional[Path]) -> None:
         """Reads existing ledger and appends export."""
         tmp_ledger = output_path / "ledger.csv"
         if tmp_ledger.exists() is True:
             tmp = pd.read_csv(tmp_ledger)
             self.transactions = pd.concat([self.transactions, tmp])
 
-        if export_path != None and export_path.exists():
+        if export_path is not None and export_path.exists():
             df = pd.read_csv(
                 export_path,
                 sep=";",
@@ -88,13 +88,13 @@ class Ledger:
             df.columns = ["date", "recipient", "amount"]
             self.transactions = pd.concat([self.transactions, df])
 
-    def init_metadata(self, output_path: Path, export_path: Path = None):
+    def init_metadata(self, output_path: Path, export_path: Optional[Path]) -> None:
         """Calculates starting balance from export."""
         tmp_metadata = output_path / "metadata.csv"
         if tmp_metadata.exists() is True:
             tmp = pd.read_csv(tmp_metadata)
             self.metadata = pd.concat([self.metadata, tmp])
-        elif export_path != None and export_path.exists():
+        elif export_path is not None and export_path.exists():
             header = pd.read_csv(
                 export_path,
                 sep=";",
@@ -108,13 +108,13 @@ class Ledger:
 
             locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
             end_balance = locale.atof(header.iloc[2, 1].replace(" EUR", ""))
-            revenue = df["amount"].sum()
+            revenue = self.transactions["amount"].sum()
 
             self.metadata = (
                 pd.DataFrame({"starting_balance": [float(end_balance - revenue)]}),
             )
 
-    def init_mappingtable(self, output_path: Path):
+    def init_mappingtable(self, output_path: Path) -> None:
         """Reads mapping table and appends new recipients."""
         tmp_maptab = output_path / "mappingtable.csv"
 
