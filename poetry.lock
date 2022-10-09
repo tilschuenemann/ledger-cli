@@ -240,7 +240,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "cbdb140a0f270c60160545293afa62b0ffc1fc123b7e7e320e8bf433bde2d800"
+content-hash = "c53546ae1deeaba91e8ed6182c431ad7ed99e1c8c8b78b9e652c610ab35a3635"
 
 [metadata.files]
 atomicwrites = []
