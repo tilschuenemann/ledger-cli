@@ -1,8 +1,8 @@
 [[_TOC_]]
 
-# ledger-cli
+# ledgercli
 
-ledger-cli takes your banks csv statements, generates reports in a transparent format
+ledgercli takes your banks csv statements, generates reports in a transparent format
 and serves as an interface for data visualisation.
 
 # Installation
@@ -31,18 +31,27 @@ Updating mappingtable.csv, rewriting ledger, history.csv, ledger_distributed.csv
 ledgercli update
 ```
 
+These files get written to your output_folder:
+
+- ledger.csv
+- mappingtable.csv
+- metadata.csv
+- history.csv
+- transactions_coalesced.csv
+- transactions_distributed.csv
+
 # Features
 
 ### Mapping Table
 
-You're given the ability to provide three different labels, a clean recipient name
-and an occurence for each recipient in your ledger:
+You're able to provide three different labels, a clean recipient name
+and an occurence for each unique recipient in _mappingtable.csv_:
 
 | recipient       | recipient_clean | label1    | label2 | label3 | occurence |
 | --------------- | --------------- | --------- | ------ | ------ | --------- |
 | grocerystore+++ | Grocery Store   | Groceries |        |        | 0         |
 
-mappingtable.csv is read and mapped onto the ledger everytime you use the ledger-cli.
+_mappingtable.csv_ is read and mapped onto the ledger everytime you use ledgercli.
 
 ### Custom Values and Coalescing
 
@@ -53,7 +62,7 @@ For the majority of the data columns in the ledger.csv there is a "\_custom"-suf
 | -50    |               | ... |
 | -10    | 5             | ... |
 
-Ledger writes a transactions_coalesced.csv, where every pair is merged. "\_custom"
+Ledger writes a _transactions_coalesced.csv_, where every pair is merged. "\_custom"
 values take precedence.
 
 Custom values can be provided for these columns:
@@ -75,11 +84,11 @@ Currently available providers:
 
 - DKB
 
-[Feel free to create a pull request!](ww.google.de)
+[Feel free to create a pull request!](https://github.com/tilschuenemann/ledger_refactor/pulls)
 
 ### Distribution of frequent events
 
-Certain transactions occur once every now and then and might dilute meaningful interpretation, eg. an insurance bill only at the
+Certain transactions occur once every now and then and might dilute meaningful interpretation, eg. an insurance bill only be reported at the
 start of the year:
 
 | amount | date       | recipient       | ... | occurence |
@@ -91,10 +100,12 @@ months into the future, starting from the current month:
 
 | amount | date       | recipient       | ... | occurence |
 | ------ | ---------- | --------------- | --- | --------- |
-| -5     | 2022-01-01 | insurance comp. | ... | 12        |
-| -5     | 2022-02-01 | insurance comp. | ... | 12        |
+| -5     | 2022-01-01 | insurance comp. | ... | 1         |
+| -5     | 2022-02-01 | insurance comp. | ... | 1         |
 | ...    | ...        | ...             | ... | ...       |
-| -5     | 2022-12-01 | insurance comp. | ... | 12        |
+| -5     | 2022-12-01 | insurance comp. | ... | 1         |
+
+The result of this operation is written to _transactions_distributed.csv_ .
 
 Note that the original date will be set to the start of the month as well.
 
@@ -106,7 +117,7 @@ transactions which have a fixed-cost character but don't appear frequently (eg. 
 
 ### Historical View
 
-Another export is the history.csv, where you'll find your day-to-day spendings and
+Another export is the _history.csv_, where you'll find your day-to-day spendings and
 your daily balance (incase your bank exports feature a starting or end balance).
 
 | date       | amount | balance |
@@ -115,7 +126,7 @@ your daily balance (incase your bank exports feature a starting or end balance).
 | 2022-01-02 | 120    | 210     |
 | 2021-01-05 | -5     | 205     |
 
-If you're bank doesn't provide any means of calculating a balance, you can write it manually in the metadata.csv:
+If you're bank doesn't provide any means of calculating a balance, you can write it manually in the _metadata.csv_:
 
 | starting_balance | bank_format |
 | ---------------- | ----------- |
