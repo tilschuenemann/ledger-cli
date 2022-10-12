@@ -3,5 +3,6 @@ static/
 .pytest_cache/
 tests/__pycache__/
 .coverage
-ledger/__pycache__
+ledgercli/__pycache__
 htmlcov/
+dist/

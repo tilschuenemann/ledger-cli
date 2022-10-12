@@ -1,9 +1,16 @@
-import locale
 import pandas as pd
+
+import locale
 import pathlib
 
 
 class BankFormat:
+    @staticmethod
+    def list_bank_format() -> None:
+        print("supported bank_formats:")
+        for bank_format in ["dkb"]:
+            print(bank_format)
+
     @staticmethod
     def get_transactions(bank_format: str, export_path: pathlib.Path) -> pd.DataFrame:
         if bank_format == "dkb":
@@ -17,7 +24,8 @@ class BankFormat:
                 encoding="latin1",
                 skiprows=6,
             )
-            return df.iloc[:, [0, 3, 7]].copy()
+            df = df.iloc[:, [0, 3, 7]].copy()
+        return df
 
     @staticmethod
     def get_end_balance(bank_format: str, export_path: pathlib.Path) -> pd.DataFrame:
@@ -34,4 +42,5 @@ class BankFormat:
             )
 
             locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
-            return locale.atof(header.iloc[2, 1].replace(" EUR", ""))
+            end_balance = locale.atof(header.iloc[2, 1].replace(" EUR", ""))
+        return end_balance
