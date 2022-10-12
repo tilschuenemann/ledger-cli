@@ -1,5 +1,3 @@
-[[_TOC_]]
-
 # ledgercli
 
 ledgercli takes your banks csv statements, generates reports in a transparent format
