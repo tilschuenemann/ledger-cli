@@ -65,9 +65,9 @@ class Ledger:
             }
         )
 
-        self.udpate(export_path=export_path, bank_format=bank_format)
+        self.update(export_path=export_path, bank_format=bank_format)
 
-    def udpate(self, export_path: Optional[Path], bank_format: Optional[str]) -> None:
+    def update(self, export_path: Optional[Path], bank_format: Optional[str]) -> None:
         self.init_ledger(export_path, bank_format)
         self.init_metadata(export_path, bank_format)
         self.init_mappingtable()
@@ -168,9 +168,12 @@ class Ledger:
             "label2",
             "label3",
         ]:
-            tmp[f"{col}_custom"].update(tmp[col])
+            tmp[col] = np.where(tmp[f"{col}_custom"].isnull() == True, tmp[col], tmp[f"{col}_custom"])
             tmp = tmp.drop(f"{col}_custom", axis=1)
         tmp = tmp.drop("recipient", axis=1).rename(columns={"recipient_clean": "recipient"})
+
+        # np.where above converts datetimes into ns
+        tmp["date"] = pd.to_datetime(tmp["date"], unit="ns")
         self.transactions_coalesced = tmp
 
     def init_history(self) -> None:
