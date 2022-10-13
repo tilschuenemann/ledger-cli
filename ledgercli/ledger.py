@@ -168,7 +168,7 @@ class Ledger:
             "label2",
             "label3",
         ]:
-            tmp[col] = np.where(pd.isnull(tmp[f"{col}_custom"]), tmp[col], tmp[f"{col}_custom"])
+            tmp[f"{col}_custom"].update(tmp[col])
             tmp = tmp.drop(f"{col}_custom", axis=1)
         tmp = tmp.drop("recipient", axis=1).rename(columns={"recipient_clean": "recipient"})
         self.transactions_coalesced = tmp
@@ -233,8 +233,6 @@ class Ledger:
 
     def write(self) -> None:
         """Writes all internal formats to current output_path."""
-
-        # self._create_date_columns()
 
         write_map = dict(
             {
