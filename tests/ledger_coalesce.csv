@@ -1,0 +1,4 @@
+amount,amount_custom,date,date_custom,label1_custom,label2_custom,label3_custom,occurence_custom,recipient,recipient_clean_custom,recipient_clean,label1,label2,label3,occurence
+5.0,,2022-09-16,,,,,,rec0,,,lab1,lab2,lab3,0
+5.0,4.0,2022-09-16,2022-12-01,lab1custom,lab2custom,lab3custom,1,rec0,rec_cleancustom,rec_clean,lab1,lab2,lab3,0
+5.0,0,2022-09-16,,lab1,lab2,lab3,1,rec0,rec_clean,,,,,0
