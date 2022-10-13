@@ -160,18 +160,21 @@ class Ledger:
         """Coalesces all custom values."""
         tmp = self.transactions.copy()
 
-        for col in [
-            "date",
-            "amount",
-            "occurence",
-            "recipient_clean",
-            "label1",
-            "label2",
-            "label3",
-        ]:
-            tmp[col] = np.where(tmp[f"{col}_custom"].isnull() == True, tmp[col], tmp[f"{col}_custom"])
-            tmp = tmp.drop(f"{col}_custom", axis=1)
-        tmp = tmp.drop("recipient", axis=1).rename(columns={"recipient_clean": "recipient"})
+        coalesce_map = dict(
+            {
+                "date": "date_custom",
+                "amount": "amount_custom",
+                "recipient_clean": "recipient_clean_custom",
+                "occurence": "occurence_custom",
+                "label1": "label1_custom",
+                "label2": "label2_custom",
+                "label3": "label3_custom",
+                "recipient": "recipient_clean",
+            }
+        )
+        for k, v in coalesce_map.items():
+            tmp[k] = np.where(tmp[v].isnull() == True, tmp[k], tmp[v])
+            tmp = tmp.drop(v, axis=1)
 
         # np.where above converts datetimes into ns
         tmp["date"] = pd.to_datetime(tmp["date"], unit="ns")

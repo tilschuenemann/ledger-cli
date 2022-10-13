@@ -175,7 +175,8 @@ def test_coalesce(ledger_empty_export) -> None:
     # check that original values dont get overwritten incase of no coalesce
     assert l.transactions_coalesced["amount"].iloc[0] == 5.0
     assert l.transactions_coalesced["date"].iloc[0] == datetime.datetime(2022, 9, 16)
-    # TODO add fallback
+    assert l.transactions_coalesced["recipient"].iloc[0] == "rec0"
+
     # assert l.transactions_coalesced["recipient"].iloc[0] == "rec0"
     assert l.transactions_coalesced["label1"].iloc[0] == "lab1"
     assert l.transactions_coalesced["label2"].iloc[0] == "lab2"
@@ -216,7 +217,6 @@ def test_distribute(ledger_empty_export) -> None:
     # check for correct dates
     assert set(repeat_forward["date"]) == set([datetime.datetime(2022, 6, 1), datetime.datetime(2022, 5, 1)])
     assert set(repeat_backward["date"]) == set([datetime.datetime(2022, 6, 1), datetime.datetime(2022, 7, 1)])
-    # TODO fix -1 setback
     assert set(no_repeat["date"]) == set([datetime.datetime(2022, 6, 1), datetime.datetime(2022, 6, 15)])
 
     # check for correct amount
