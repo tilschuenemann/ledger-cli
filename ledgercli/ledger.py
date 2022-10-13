@@ -207,7 +207,7 @@ class Ledger:
     def init_distributed_ledger(self) -> None:
         """Distributes coalesced transactions basd on occurence."""
         df = self.transactions_coalesced
-        mask = pd.notna(df["occurence"]) & df["occurence"] != 0
+        mask = pd.notna(df["occurence"]) & ~df["occurence"].between(-1, 1, inclusive="both")
         repeat = df.loc[mask].copy()
         rest = df.loc[~mask].copy()
 

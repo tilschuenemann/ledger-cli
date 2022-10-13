@@ -217,7 +217,7 @@ def test_distribute(ledger_empty_export) -> None:
     assert set(repeat_forward["date"]) == set([datetime.datetime(2022, 6, 1), datetime.datetime(2022, 5, 1)])
     assert set(repeat_backward["date"]) == set([datetime.datetime(2022, 6, 1), datetime.datetime(2022, 7, 1)])
     # TODO fix -1 setback
-    # assert set(no_repeat["date"]) == set([datetime.datetime(2022, 6, 1)])
+    assert set(no_repeat["date"]) == set([datetime.datetime(2022, 6, 1), datetime.datetime(2022, 6, 15)])
 
     # check for correct amount
     assert set(repeat_backward["amount"]) == set([2.5])
