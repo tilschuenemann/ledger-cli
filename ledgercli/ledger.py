@@ -140,6 +140,7 @@ class Ledger:
         new_mappings = pd.DataFrame(ledger_recipients.difference(mp_recipients), columns=["recipient"])
 
         self.mappings = pd.concat([self.mappings, new_mappings], ignore_index=True)
+        self.mappings = self.mappings.sort_values("recipient")
 
     def update_mappings(self) -> None:
         """Re-maps transactions.
