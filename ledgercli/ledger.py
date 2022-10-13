@@ -205,18 +205,11 @@ class Ledger:
             df["type"] = np.where(df["amount"] > 0, "Income", "Expense")
 
     def init_distributed_ledger(self) -> None:
-        """Distributes coalesced transactions basd on occurence.
-
-        TODO indexing can be probably more concise, check for null and 0 at the same time
-        """
-        na_index = pd.isna(self.transactions_coalesced["occurence"])
-        repeat_tmp = self.transactions_coalesced[~na_index]
-        rest = self.transactions_coalesced[na_index]
-
-        repeat = repeat_tmp[repeat_tmp["occurence"] != 0]
-        rest2 = repeat_tmp[repeat_tmp["occurence"] == 0]
-
-        rest = pd.concat([rest, rest2], ignore_index=True)
+        """Distributes coalesced transactions basd on occurence."""
+        df = self.transactions_coalesced
+        mask = pd.notna(df["occurence"]) & df["occurence"] != 0
+        repeat = df.loc[mask].copy()
+        rest = df.loc[~mask].copy()
 
         if repeat.empty is False:
             repeat["date"] = repeat.apply(
