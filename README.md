@@ -14,15 +14,15 @@ pip install ledgercli
 Creating the initial ledger in the current directory:
 
 ```bash
-ledgercli update --e export.csv --b "dkb" --w
+ledgercli update --e export.csv --b "dkb"
 ```
 
 Appending newer exports:
 
 ```bash
-ledgercli update --e appendage.csv --b "dkb" --w
+ledgercli update --e appendage.csv --b "dkb"
 # if bank_format is specified in your metadata.csv, you don't have to specify it again:
-ledgercli update --e appendage.csv --w
+ledgercli update --e appendage.csv
 ```
 
 Rewriting ledger and updating mappingtable.csv, , history.csv, ledger_distributed.csv, ledger_coalesced.csv:
@@ -63,10 +63,10 @@ _mappingtable.csv_ is read and mapped onto the ledger everytime you use ledgercl
 
 For the majority of the data columns in the ledger.csv there is a "\_custom"-suffixed twin:
 
-| amount | amount_custom | ... |
-| ------ | ------------- | --- |
-| -50    |               | ... |
-| -10    | 5             | ... |
+| amount | amount_custom |
+| ------ | ------------- |
+| -50    |               |
+| -10    | 5             |
 
 Ledger writes a _transactions_coalesced.csv_, where every pair is merged. "\_custom"
 values take precedence.
@@ -168,26 +168,19 @@ output_path = Path("path/to/output_folder")
 export_path = Path("path/to/export.csv")
 bank="yourbankformat"
 
+# The Ledger object caches its initial output_path and bank_format and uses them
+# as fallback if they are not provided.
 l = Ledger(output_path=output_path, export_path=export_path, bank=bank)
-```
 
-Writing to disk:
-
-```python
-l.write()
-```
-
-Appending another export:
-
-```python
+# Appending another export:
 appendage_path = Path("path/to/another_export.csv")
-l = Ledger(output_path=output_path, export_path=appendage_path, bank=bank)
-```
+l.update(export_path)
 
-Updating your Ledger object after you made modifications to the files in the output_folder:
+# Updating your Ledger object after you made modifications to the files in the output_folder:
+l.update()
 
-```python
-l = Ledger(output_path=output_path, export_path=None)
+# Writing to disk:
+l.write()
 ```
 
 # Acknowledgements
