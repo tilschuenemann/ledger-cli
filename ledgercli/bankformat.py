@@ -29,6 +29,7 @@ class BankFormat:
                 skiprows=6,
             )
             df = tmp.iloc[:, [0, 3, 7]].copy()
+            df.columns = ["date", "recipient", "amount"]
         return df
 
     @staticmethod
@@ -50,3 +51,12 @@ class BankFormat:
             locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
             end_balance = locale.atof(header.iloc[2, 1].replace(" EUR", ""))
         return end_balance
+
+    @staticmethod
+    def get_start_balance(bank_format: str, export_path: pathlib.Path) -> float:
+        if bank_format not in BankFormat().bank_formats:
+            exit("The bank_format you provided is not supported (yet)!")
+        if bank_format == "dkb":
+            start_balance = 0
+
+        return start_balance

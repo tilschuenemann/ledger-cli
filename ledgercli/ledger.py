@@ -98,7 +98,6 @@ class Ledger:
 
         if export_path is not None and bank_format is not None and export_path.exists():
             tmp = BankFormat.get_transactions(bank_format=bank_format, export_path=export_path)
-            tmp.columns = ["date", "recipient", "amount"]
             self.transactions = pd.concat([self.transactions, tmp])
 
     def init_metadata(self, export_path: Optional[Path], bank_format: Optional[str]) -> None:

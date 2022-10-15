@@ -16,7 +16,7 @@ def tmp_folder(tmp_path) -> pathlib.Path:
 @pytest.fixture
 def ledger_empty_export(tmp_folder) -> Ledger:
     """Creates Ledger object with empty export."""
-    export_path = pathlib.Path("tests/export_empty.csv")
+    export_path = pathlib.Path("tests/bank_exports/dkb_export_empty.csv")
     l = Ledger(tmp_folder, export_path=export_path, bank_format="dkb")
     return l
 
@@ -24,7 +24,7 @@ def ledger_empty_export(tmp_folder) -> Ledger:
 @pytest.fixture
 def ledger_regular_export(tmp_folder) -> Ledger:
     """Creates Ledger object with regular export."""
-    export_path = pathlib.Path("tests/export_regular.csv")
+    export_path = pathlib.Path("tests/bank_exports/dkb_export_regular.csv")
     l = Ledger(tmp_folder, export_path=export_path, bank_format="dkb")
     return l
 
@@ -116,7 +116,7 @@ def test_update(ledger_regular_export, tmp_folder) -> None:
 
     # append and update with export path once
     for i in range(1, 3):
-        export_path = pathlib.Path("tests/export_regular.csv")
+        export_path = pathlib.Path("tests/bank_exports/dkb_export_regular.csv")
         l.update(export_path=export_path, bank_format="dkb")
         assert l.transactions.shape == (6, 19)
         assert l.mappings.shape == (3, 6)
