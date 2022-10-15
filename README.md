@@ -14,16 +14,18 @@ pip install ledgercli
 Creating the initial ledger in the current directory:
 
 ```bash
-ledgercli export.csv --bank "dkb"
+ledgercli update --e export.csv --b "dkb" --w
 ```
 
 Appending newer exports:
 
 ```bash
-ledgercli appendage.csv
+ledgercli update --e appendage.csv --b "dkb" --w
+# if bank_format is specified in your metadata.csv, you don't have to specify it again:
+ledgercli update --e appendage.csv --w
 ```
 
-Updating mappingtable.csv, rewriting ledger, history.csv, ledger_distributed.csv, ledger_coalesced.csv:
+Rewriting ledger and updating mappingtable.csv, , history.csv, ledger_distributed.csv, ledger_coalesced.csv:
 
 ```bash
 ledgercli update
