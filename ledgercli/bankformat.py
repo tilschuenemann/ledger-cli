@@ -10,9 +10,8 @@ class BankFormat:
 
     @staticmethod
     def list_bank_formats() -> None:
-        print("supported bank_formats:")
         for bank_format in BankFormat().bank_formats:
-            print(bank_format)
+            print(f"* {bank_format}")
 
     @staticmethod
     def get_transactions(bank_format: str, export_path: pathlib.Path) -> pd.DataFrame:
