@@ -11,11 +11,13 @@ from ledgercli.bankformat import BankFormat
 
 
 class Ledger:
-    def __init__(self, output_path: Path, export_path: Optional[Path], bank_format: Optional[str]):
+    def __init__(self, output_path: Path, export_path: Optional[Path] = None, bank_format: Optional[str] = None):
 
         self.current_output_dir = output_path
         self.current_bank_fornat = bank_format
+        self.update(export_path=export_path, bank_format=bank_format)
 
+    def create_template(self) -> None:
         mapping_schema = {
             "recipient_clean": pd.Series(dtype=str),
             "label1": pd.Series(dtype=str),
@@ -65,9 +67,11 @@ class Ledger:
             }
         )
 
-        self.update(export_path=export_path, bank_format=bank_format)
-
-    def update(self, export_path: Optional[Path], bank_format: Optional[str]) -> None:
+    def update(self, export_path: Optional[Path] = None, bank_format: Optional[str] = None) -> None:
+        """Resets internal dataframes and reads ledger from output_path, optionally
+        appends the provided export.
+        """
+        self.create_template()
         self.init_ledger(export_path, bank_format)
         self.init_metadata(export_path, bank_format)
         self.init_mappingtable()

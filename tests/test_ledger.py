@@ -32,7 +32,7 @@ def ledger_regular_export(tmp_folder) -> Ledger:
 @pytest.fixture
 def empty_ledger(tmp_folder) -> Ledger:
     """Creates empty Ledger object."""
-    l = Ledger(tmp_folder, export_path=None, bank_format=None)
+    l = Ledger(tmp_folder)
 
     assert l.transactions.shape == (0, 19)
     assert l.transactions_coalesced.shape == (0, 7 + 4 + 1)
@@ -101,12 +101,31 @@ def test_mappingtable_keeporphans(ledger_regular_export, tmp_folder) -> None:
     assert "rec1" not in al.transactions["recipient"].values
 
 
-def test_append1(ledger_regular_export, tmp_folder) -> None:
-    ledger_regular_export.write()
-    appendage_path = pathlib.Path("tests/appendage_regular.csv")
-    l = Ledger(tmp_folder, export_path=appendage_path, bank_format="dkb")
+def test_update(ledger_regular_export, tmp_folder) -> None:
+    l = ledger_regular_export
     l.write()
+    assert l.transactions.shape == (3, 19)
 
+    # just updating should keep the same amount of rows
+    for i in range(1, 3):
+        l.update()
+        assert l.transactions.shape == (3, 19)
+        assert l.mappings.shape == (3, 6)
+        assert l.metadata.shape == (1, 2)
+        assert l.transactions.isna().sum().sum() == 3 * 12
+
+    # append and update with export path once
+    for i in range(1, 3):
+        export_path = pathlib.Path("tests/export_regular.csv")
+        l.update(export_path=export_path, bank_format="dkb")
+        assert l.transactions.shape == (6, 19)
+        assert l.mappings.shape == (3, 6)
+        assert l.metadata.shape == (1, 2)
+        assert l.transactions.isna().sum().sum() == 6 * 12
+
+    # check for correct appendage
+    appendage_path = pathlib.Path("tests/appendage_regular.csv")
+    l.update(appendage_path, "dkb")
     assert l.mappings.shape == (6, 6)
     assert l.transactions.shape == (6, 19)
     assert l.metadata.shape == (1, 2)
@@ -115,14 +134,9 @@ def test_append1(ledger_regular_export, tmp_folder) -> None:
     assert l.transactions["amount"].sum() == 2
     assert set(l.transactions["recipient"]) == set(["rec1", "rec2", "rec3", "rec4", "rec5", "rec6"])
 
-
-def test_append2(ledger_regular_export, tmp_folder) -> None:
-    """check for appending new, empty export"""
-    ledger_regular_export.write()
-
+    # check for empty appendage
     appendage_path = pathlib.Path("tests/export_empty.csv")
-    l = Ledger(tmp_folder, export_path=appendage_path, bank_format="dkb")
-    l.write()
+    l.update(export_path=appendage_path, bank_format="dkb")
 
     assert l.mappings.shape == (3, 6)
     assert l.transactions.shape == (3, 19)
