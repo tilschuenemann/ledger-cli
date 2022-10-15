@@ -101,29 +101,30 @@ def test_mappingtable_keeporphans(ledger_regular_export, tmp_folder) -> None:
     assert "rec1" not in al.transactions["recipient"].values
 
 
-def test_update(ledger_regular_export, tmp_folder) -> None:
+def test_update_multiple(ledger_regular_export, tmp_folder) -> None:
     l = ledger_regular_export
-    l.write()
     assert l.transactions.shape == (3, 19)
 
     # just updating should keep the same amount of rows
-    for i in range(1, 3):
+    for i in range(1, 4):
         l.update()
         assert l.transactions.shape == (3, 19)
         assert l.mappings.shape == (3, 6)
         assert l.metadata.shape == (1, 2)
         assert l.transactions.isna().sum().sum() == 3 * 12
 
-    # append and update with export path once
+    # append and update with export
     for i in range(1, 3):
         export_path = pathlib.Path("tests/bank_exports/dkb_export_regular.csv")
         l.update(export_path=export_path, bank_format="dkb")
-        assert l.transactions.shape == (6, 19)
+        assert l.transactions.shape == (3 + 3 * i, 19)
         assert l.mappings.shape == (3, 6)
         assert l.metadata.shape == (1, 2)
-        assert l.transactions.isna().sum().sum() == 6 * 12
+        assert l.transactions.isna().sum().sum() == (3 + 3 * i) * 12
 
-    # check for correct appendage
+
+def test_update_regular_appendage(ledger_regular_export):
+    l = ledger_regular_export
     appendage_path = pathlib.Path("tests/appendage_regular.csv")
     l.update(appendage_path, "dkb")
     assert l.mappings.shape == (6, 6)
@@ -134,7 +135,9 @@ def test_update(ledger_regular_export, tmp_folder) -> None:
     assert l.transactions["amount"].sum() == 2
     assert set(l.transactions["recipient"]) == set(["rec1", "rec2", "rec3", "rec4", "rec5", "rec6"])
 
-    # check for empty appendage
+
+def test_update_empty_appendage(ledger_regular_export):
+    l = ledger_regular_export
     appendage_path = pathlib.Path("tests/export_empty.csv")
     l.update(export_path=appendage_path, bank_format="dkb")
 

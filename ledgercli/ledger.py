@@ -12,9 +12,10 @@ from ledgercli.bankformat import BankFormat
 
 class Ledger:
     def __init__(self, output_path: Path, export_path: Optional[Path] = None, bank_format: Optional[str] = None):
-
         self.current_output_dir = output_path
         self.current_bank_fornat = bank_format
+        self.create_template()
+        self.READ_FROM_DISK = True
         self.update(export_path=export_path, bank_format=bank_format)
 
     def create_template(self) -> None:
@@ -70,11 +71,15 @@ class Ledger:
     def update(self, export_path: Optional[Path] = None, bank_format: Optional[str] = None) -> None:
         """Resets internal dataframes and reads ledger from output_path, optionally
         appends the provided export.
+
+        :param export_path: path to your banking export.
+        :param bank_format: specify which bank format you're using.
+
         """
-        self.create_template()
         self.init_ledger(export_path, bank_format)
         self.init_metadata(export_path, bank_format)
         self.init_mappingtable()
+        self.READ_FROM_DISK = False
         self.update_mappings()
         self.init_coalesced_ledger()
         self.init_distributed_ledger()
@@ -92,7 +97,7 @@ class Ledger:
         """
         tmp_ledger = self.current_output_dir / "ledger.csv"
 
-        if tmp_ledger.exists() is True:
+        if self.READ_FROM_DISK and tmp_ledger.exists() is True:
             tmp = pd.read_csv(tmp_ledger, parse_dates=["date", "date_custom"])
             self.transactions = pd.concat([self.transactions, tmp])
 
@@ -109,7 +114,7 @@ class Ledger:
         TODO set metadata if current ledger empty?
         """
         tmp_metadata = self.current_output_dir / "metadata.csv"
-        if tmp_metadata.exists() is True:
+        if self.READ_FROM_DISK and tmp_metadata.exists() is True:
             tmp = pd.read_csv(tmp_metadata)
             self.metadata = pd.concat([self.metadata, tmp])
 
@@ -134,7 +139,7 @@ class Ledger:
 
         tmp_maptab = self.current_output_dir / "mappingtable.csv"
 
-        if tmp_maptab.exists() is True:
+        if self.READ_FROM_DISK and tmp_maptab.exists() is True:
             tmp = pd.read_csv(tmp_maptab)
             self.mappings = pd.concat([self.mappings, tmp])
 
