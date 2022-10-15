@@ -181,3 +181,7 @@ Updating your Ledger object after you made modifications to the files in the out
 ```python
 l = Ledger(output_path=output_path, export_path=None)
 ```
+
+# Acknowledgements
+
+This is a hobby project that I pursue with my free time - unexpected behavior or the discontinuation of the project can happen at any time.
