@@ -31,6 +31,12 @@ Rewriting ledger and updating mappingtable.csv, , history.csv, ledger_distribute
 ledgercli update
 ```
 
+You can list the currently supported bank formats:
+
+```bash
+ledgercli list-formats
+```
+
 These files get written to your output_folder:
 
 - ledger.csv
