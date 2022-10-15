@@ -3,6 +3,7 @@ import pandas as pd
 import argparse
 import pathlib
 import os
+import traceback
 
 from ledgercli.ledger import Ledger
 from ledgercli.bankformat import BankFormat
@@ -17,7 +18,7 @@ def main() -> None:
         help="list available bank formats for importing",
     )
 
-    update = subparsers.add_parser("update")
+    update = subparsers.add_parser("update", help="update ledger and append exports")
     update.add_argument(
         "--output_path",
         dest="output_path",
@@ -34,7 +35,6 @@ def main() -> None:
         nargs=1,
         choices=BankFormat().bank_formats,
     )
-    update.add_argument("--write", dest="write", help="write ledger to disk.", action="store_true")
 
     args = parser.parse_args()
 
@@ -57,16 +57,17 @@ def main() -> None:
             try:
                 metadata_path = output_path / "metadata.csv"
                 bank_format = pd.read_csv(metadata_path)["bank_format"].iloc[0]
-            except e:
-                exit("an error occurred while trying to guess your bank_format:", e)
+            except:
+                print("an error occurred while trying to guess your bank_format:")
+                traceback.print_exc()
+                exit()
 
         if args.export_path is None:
             l.update()
         elif args.export_path is not None and args.bank_format is not None:
             l.update(args.export_path[0], args.bank_format[0])
 
-        if args.write:
-            l.write()
+        l.write()
 
 
 if __name__ == "__main__":
