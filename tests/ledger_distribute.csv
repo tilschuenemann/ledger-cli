@@ -1,6 +1,0 @@
-amount,amount_custom,date,date_custom,label1_custom,label2_custom,label3_custom,occurence_custom,recipient,recipient_clean_custom,recipient_clean,label1,label2,label3,occurence
-5.0,,2022-06-01,,,,,,rec0,rec0,,,,,0
-5.0,,2022-06-15,,,,,,rec1,rec1,,,,,1
-5.0,,2022-06-01,,,,,,rec2,rec2,,,,,-1
-5.0,,2022-06-01,,,,,,rec3,rec3,,,,,-2
-5.0,,2022-06-01,,,,,,rec4,rec4,,,,,2
