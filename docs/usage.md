@@ -1,7 +1,7 @@
 # Usage
 
 ```{eval-rst}
-.. click:: ledgercli.__main__:main
+.. click:: ledgercli.cli:cli
     :prog: ledgercli
     :nested: full
 ```
