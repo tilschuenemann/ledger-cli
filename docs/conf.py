@@ -1,4 +1,6 @@
 """Sphinx configuration."""
+
+
 project = "ledger-cli"
 author = "Til Schünemann"
 copyright = "2022, Til Schünemann"
