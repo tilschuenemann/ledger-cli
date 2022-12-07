@@ -1,5 +1,4 @@
 """BankInterface."""
-import locale
 from pathlib import Path
 from typing import List
 
@@ -160,8 +159,11 @@ class BankInterface:
                 header=None,
             )
 
-            locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
-            end_balance = locale.atof(header.iloc[2, 1].replace(" EUR", ""))
+            # locale.atof not used here as de_DE locale needs to be installed
+            end_balance = header.iloc[2, 1]
+            end_balance = float(
+                end_balance.replace(".", "").replace(",", ".").replace(" EUR", "")
+            )
         else:
             end_balance = 0
         return end_balance
