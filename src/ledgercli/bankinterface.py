@@ -160,10 +160,9 @@ class BankInterface:
             )
 
             # locale.atof not used here as de_DE locale needs to be installed
-            end_balance = header.iloc[2, 1]
             end_balance = float(
-                end_balance.replace(".", "").replace(",", ".").replace(" EUR", "")
+                header.iloc[2, 1].replace(".", "").replace(",", ".").replace(" EUR", "")
             )
         else:
-            end_balance = 0
+            end_balance = 0.0
         return end_balance
