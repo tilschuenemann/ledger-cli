@@ -6,11 +6,14 @@ Incase you want to create a PR with your bank format, please create a dummy with
 the expected values and redacted other information but still keeping the report structure.
 """
 
-import pytest
-from ledgercli.bankinterface import BankInterface
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict
+from typing import Tuple
+
 import pandas as pd
+import pytest
+
+from ledgercli.bankinterface import BankInterface
 
 
 @pytest.fixture
@@ -35,9 +38,8 @@ def sp_setup() -> Tuple[str, Path]:
     return ("sp", Path("tests/sp_sample.csv"))
 
 
-def test_BankInterfaces() -> None:
+def test_bankinterfaces() -> None:
     """Tests for valid formats and for raising exception if a non-supported bank_format is provided."""
-
     # valid formats
     assert BankInterface().list_bank_formats() == ["dkb", "sp"]
 
@@ -47,53 +49,49 @@ def test_BankInterfaces() -> None:
     assert str(exc_info.value) == "The bank_format you provided is not supported."
 
 
-def test_dkb(dkb_setup: Tuple[str, Path], exp_values: Dict[str, float | Path | str]) -> None:
-    # bank_format = dkb_setup["bank_format"]
-    # export_path = dkb_setup["export_path"]
-
+def test_dkb(
+    dkb_setup: Tuple[str, Path], exp_values: Dict[str, float | Path | str]
+) -> None:
+    """Tests for DKB."""
     bank_format, export_path = dkb_setup
 
     # valid input
-    assert 0 == BankInterface().get_start_balance(
-        bank_format, export_path
-    )
-    assert 1000.01 == BankInterface().get_end_balance(
-        bank_format, export_path
-    )
+    assert 0 == BankInterface().get_start_balance(bank_format, export_path)
+    assert 1000.01 == BankInterface().get_end_balance(bank_format, export_path)
 
-    df = BankInterface().get_transactions(
-        bank_format, export_path
-    )
+    df = BankInterface().get_transactions(bank_format, export_path)
 
     for item in ["amount", "date", "recipient"]:
-        assert set(df[item]) == set([exp_values[item]])
+        assert set(df[item]) == {exp_values[item]}
 
     # empty input
     with pytest.raises(Exception) as exc_info:
         BankInterface().get_transactions(bank_format, Path("tests/dkb_empty.csv"))
-    assert str(exc_info.value) == "The provided export contains no transactions. Please supply a non-empty export!"
+    assert (
+        str(exc_info.value)
+        == "The provided export contains no transactions. Please supply a non-empty export!"
+    )
 
 
 def test_sp(
-        sp_setup: Tuple[str, Path], exp_values: Dict[str, float | Path | str]) -> None:
+    sp_setup: Tuple[str, Path], exp_values: Dict[str, float | Path | str]
+) -> None:
+    """Tests for Sparkasse."""
     # valid input
     bank_format, export_path = sp_setup
 
-    assert 0 == BankInterface().get_start_balance(
-        bank_format, export_path
-    )
-    assert 0 == BankInterface().get_end_balance(
-        bank_format, export_path
-    )
+    assert 0 == BankInterface().get_start_balance(bank_format, export_path)
+    assert 0 == BankInterface().get_end_balance(bank_format, export_path)
 
-    df = BankInterface().get_transactions(
-        bank_format, export_path
-    )
+    df = BankInterface().get_transactions(bank_format, export_path)
 
     for item in ["amount", "date", "recipient"]:
-        assert set(df[item]) == set([exp_values[item]])
+        assert set(df[item]) == {exp_values[item]}
 
     # empty input
     with pytest.raises(Exception) as exc_info:
         BankInterface().get_transactions(bank_format, Path("tests/sp_empty.csv"))
-    assert str(exc_info.value) == "The provided export contains no transactions. Please supply a non-empty export!"
+    assert (
+        str(exc_info.value)
+        == "The provided export contains no transactions. Please supply a non-empty export!"
+    )

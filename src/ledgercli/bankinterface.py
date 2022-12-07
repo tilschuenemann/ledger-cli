@@ -1,13 +1,17 @@
-import pandas as pd
-
+"""BankInterface."""
 import locale
 from pathlib import Path
 from typing import List
 
+import pandas as pd
+
 
 class BankInterface:
+    """BankInterface."""
+
     @staticmethod
     def list_bank_formats() -> List[str]:
+        """Lists all currently supported bank formats."""
         return ["dkb", "sp"]
 
     @staticmethod
@@ -67,7 +71,9 @@ class BankInterface:
             df.columns = ["date", "recipient", "amount"]
 
         if df.empty:
-            raise Exception("The provided export contains no transactions. Please supply a non-empty export!")
+            raise Exception(
+                "The provided export contains no transactions. Please supply a non-empty export!"
+            )
         return df
 
     @staticmethod
