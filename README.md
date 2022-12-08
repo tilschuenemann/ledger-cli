@@ -1,40 +1,41 @@
 # ledger-cli
 
-[![PyPI](https://img.shields.io/pypi/v/ledgercli.svg)][pypi_]
-[![Status](https://img.shields.io/pypi/status/ledgercli.svg)][status]
-[![Python Version](https://img.shields.io/pypi/pyversions/ledgercli)][python version]
-[![License](https://img.shields.io/pypi/l/ledgercli)][license]
+[![PyPI](https://img.shields.io/pypi/v/ledger-cli.svg)][pypi_]
+[![Status](https://img.shields.io/pypi/status/ledger-cli.svg)][status]
+[![Python Version](https://img.shields.io/pypi/pyversions/ledger-cli)][python version]
+[![License](https://img.shields.io/pypi/l/ledger-cli)][license]
 
-[![Read the documentation at https://ledgercli.readthedocs.io/](https://img.shields.io/readthedocs/ledgercli/latest.svg?label=Read%20the%20Docs)][read the docs]
-[![Tests](https://github.com/tilschuenemann/ledgercli/workflows/Tests/badge.svg)][tests]
-[![Codecov](https://codecov.io/gh/tilschuenemann/ledgercli/branch/main/graph/badge.svg)][codecov]
+[![Read the documentation at https://ledger-cli.readthedocs.io/](https://img.shields.io/readthedocs/ledger-cli/latest.svg?label=Read%20the%20Docs)][read the docs]
+[![Tests](https://github.com/tilschuenemann/ledger-cli/workflows/Tests/badge.svg)][tests]
+[![Codecov](https://codecov.io/gh/tilschuenemann/ledger-cli/branch/main/graph/badge.svg)][codecov]
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
 
-[pypi_]: https://pypi.org/project/ledgercli/
-[status]: https://pypi.org/project/ledgercli/
-[python version]: https://pypi.org/project/ledgercli
-[read the docs]: https://ledgercli.readthedocs.io/
-[tests]: https://github.com/tilschuenemann/ledgercli/actions?workflow=Tests
-[codecov]: https://app.codecov.io/gh/tilschuenemann/ledgercli
+[pypi_]: https://pypi.org/project/ledger-cli/
+[status]: https://pypi.org/project/ledger-cli/
+[python version]: https://pypi.org/project/ledger-cli
+[read the docs]: https://ledger-cli.readthedocs.io/
+[tests]: https://github.com/tilschuenemann/ledger-cli/actions?workflow=Tests
+[codecov]: https://app.codecov.io/gh/tilschuenemann/ledger-cli
 [pre-commit]: https://github.com/pre-commit/pre-commit
 [black]: https://github.com/psf/black
 
 ## Features
 
-- TODO
+ledger-cli strives to achieve two goals regarding your personal finance:
 
-## Requirements
+1. Providing you with an easy format for fine-tuning your transactions.
+2. Serving a local dashboard for easy analysis and interpration.
 
-- TODO
+[For a more in-depth view, take a look at the features here.]()
 
 ## Installation
 
 You can install _ledger-cli_ via [pip] from [PyPI]:
 
 ```console
-$ pip install ledgercli
+$ pip install ledger-cli
 ```
 
 ## Usage
@@ -63,11 +64,11 @@ This project was generated from [@cjolowicz]'s [Hypermodern Python Cookiecutter]
 [@cjolowicz]: https://github.com/cjolowicz
 [pypi]: https://pypi.org/
 [hypermodern python cookiecutter]: https://github.com/cjolowicz/cookiecutter-hypermodern-python
-[file an issue]: https://github.com/tilschuenemann/ledgercli/issues
+[file an issue]: https://github.com/tilschuenemann/ledger-cli/issues
 [pip]: https://pip.pypa.io/
 
 <!-- github-only -->
 
-[license]: https://github.com/tilschuenemann/ledgercli/blob/main/LICENSE
-[contributor guide]: https://github.com/tilschuenemann/ledgercli/blob/main/CONTRIBUTING.md
-[command-line reference]: https://ledgercli.readthedocs.io/en/latest/usage.html
+[license]: https://github.com/tilschuenemann/ledger-cli/blob/main/LICENSE
+[contributor guide]: https://github.com/tilschuenemann/ledger-cli/blob/main/CONTRIBUTING.md
+[command-line reference]: https://ledger-cli.readthedocs.io/en/latest/usage.html

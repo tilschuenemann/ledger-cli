@@ -14,10 +14,11 @@ hidden:
 maxdepth: 1
 ---
 
+features
 usage
 reference
 contributing
 Code of Conduct <codeofconduct>
 License <license>
-Changelog <https://github.com/tilschuenemann/ledgercli/releases>
+Changelog <https://github.com/tilschuenemann/ledger-cli/releases>
 ```

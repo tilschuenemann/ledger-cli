@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "ledgercli"
+name = "ledger-cli"
 version = "0.1.0"
 description = "ledger-cli"
 authors = ["Til Schünemann <til.schuenemann@mailbox.org>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/tilschuenemann/ledgercli"
-repository = "https://github.com/tilschuenemann/ledgercli"
-documentation = "https://ledgercli.readthedocs.io"
+homepage = "https://github.com/tilschuenemann/ledger-cli"
+repository = "https://github.com/tilschuenemann/ledger-cli"
+documentation = "https://ledger-cli.readthedocs.io"
 packages = [
     { include = "ledgercli", from = "src" },
 ]
@@ -16,7 +16,7 @@ classifiers = [
 ]
 
 [tool.poetry.urls]
-Changelog = "https://github.com/tilschuenemann/ledgercli/releases"
+Changelog = "https://github.com/tilschuenemann/ledger-cli/releases"
 
 [tool.poetry.scripts]
 ledgercli = "ledgercli.cli:cli"
