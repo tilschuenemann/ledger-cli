@@ -65,12 +65,10 @@ class Ledger:
         )
 
     def update_mapping(self) -> None:
-        """Adds new transaction recipients to mapping table..
+        """Adds new transaction recipients to mapping table.
 
         Takes all recipients from transactions, removes recipients already featured in mapping table and appends
         them to current mapping table. Sorts mapping table after.
-
-        TODO test for empty set difference
         """
         tr_recipients = set(self.tx["recipient"].unique())
 
@@ -130,10 +128,7 @@ class Ledger:
         self.tx_c = tmp
 
     def init_tx_d(self) -> None:
-        """Distributes coalesced transactions basd on occurence.
-
-        TODO rename repeat dfs.
-        """
+        """Distributes coalesced transactions based on occurence."""
         df = self.tx_c
         mask = pd.notna(df["occurence"]) & ~df["occurence"].between(
             -1, 1, inclusive="both"

@@ -3,6 +3,6 @@
 ## ledger-cli
 
 ```{eval-rst}
-.. automodule:: ledgercli
+.. autoclass:: ledgercli.main::Ledger
    :members:
 ```
