@@ -10,7 +10,7 @@ from ledgercli.bankinterface import BankInterface
 class Ledger:
     """Ledger."""
 
-    def __init__(self, output_dir: Path, bank_type: str | None) -> None:
+    def __init__(self, output_dir: Path, bank: str | None) -> None:
         """Initializes the Ledger."""
         if output_dir is None or output_dir.exists() is False:
             self.output_dir = Path.cwd()
@@ -20,15 +20,15 @@ class Ledger:
         self._create_template()
         self._read_existing()
 
-        if bank_type is None:
+        if bank is None:
             try:
-                self.bank_type = self.metadata["bank_format"].iloc[0]
+                self.bank = self.metadata["bank"].iloc[0]
             except Exception as exc:
                 raise Exception(
-                    "Please supply a valid BANK_TYPE! Couldn't read BANK_TYPE from metadata."
+                    "Please supply a valid BANK! Couldn't read BANK from metadata."
                 ) from exc
         else:
-            self.bank_type = BankInterface().is_supported(bank_type)
+            self.bank = BankInterface().is_supported(bank)
 
     def _read_existing(self) -> None:
         files = ["transactions.csv", "mapping.csv", "metadata.csv"]
@@ -49,9 +49,7 @@ class Ledger:
         Args:
           export_path: path to export
         """
-        tmp = BankInterface().get_transactions(
-            bank_format=self.bank_type, export_path=export_path
-        )
+        tmp = BankInterface().get_transactions(bank=self.bank, export_path=export_path)
         self.tx = pd.concat([self.tx, tmp])
 
     def init_metadata(self, export_path: Path) -> None:
@@ -61,7 +59,7 @@ class Ledger:
           export_path: path to export
         """
         self.metadata = BankInterface().get_metadata(
-            bank_format=self.bank_type, export_path=export_path
+            bank=self.bank, export_path=export_path
         )
 
     def update_mapping(self) -> None:
@@ -187,7 +185,6 @@ class Ledger:
         self.init_tx_d()
         self.init_history()
         self._assign_types()
-        self._generate_helpers()
 
     def write(self) -> None:
         """Writes all tables to output_dir."""
@@ -197,8 +194,8 @@ class Ledger:
                 "metadata": self.metadata,
                 "mapping": self.mapping,
                 "history": self.history,
-                "tx_c": self.tx_c,
-                "tx_d": self.tx_d,
+                "tx_coalesced": self.tx_c,
+                "tx_distributed": self.tx_d,
             }
         )
 
@@ -210,22 +207,6 @@ class Ledger:
                 float_format="%.2f",
                 na_rep="",
             )
-
-    def _generate_helpers(self) -> None:
-        for df in [self.tx, self.tx_c, self.tx_d, self.history]:
-            for col in ["week", "month", "quarter", "year"]:
-                df[col] = (
-                    pd.to_datetime(df["date"])
-                    .dt.to_period(col.upper()[0])
-                    .dt.to_timestamp()
-                )
-
-            # df["year_num"] = pd.to_datetime(df["date"]).dt.year
-            # df["month_num"] = pd.to_datetime(df["date"]).dt.month
-            # df["quarter_num"] = pd.to_datetime(df["date"]).dt.quarter
-            # df["week_num"] = pd.to_datetime(df["date"]).dt.isocalendar().week
-
-            df["type"] = np.where(df["amount"] > 0, "Income", "Expense")
 
     def _assign_types(self) -> None:
         types = {
@@ -250,7 +231,7 @@ class Ledger:
             # history
             "balance": float,
             # metadata
-            "bank_format": str,
+            "bank": str,
             # helpers
             "type": "category",
             "week": "datetime64[ns]",
@@ -305,7 +286,7 @@ class Ledger:
         self.metadata = pd.DataFrame(
             {
                 "starting_balance": pd.Series(dtype=float),
-                "bank_format": pd.Series(dtype=str),
+                "bank": pd.Series(dtype=str),
             }
         )
         self.history = pd.DataFrame(

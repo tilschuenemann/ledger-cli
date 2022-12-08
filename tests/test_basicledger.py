@@ -71,23 +71,23 @@ def distribute_stub() -> pd.DataFrame:
 def test_initialisation(output_dir: Path) -> None:
     """Tests if the ledger gets initialised correctly."""
     # valid input
-    ledger = Ledger(output_dir=output_dir, bank_type="dkb")
+    ledger = Ledger(output_dir=output_dir, bank="dkb")
     assert ledger.output_dir == output_dir
-    assert ledger.bank_type == "dkb"
+    assert ledger.bank == "dkb"
 
     # non existing output_dir defaults to cwd
-    ledger = Ledger(output_dir=(output_dir / "not-existing"), bank_type="dkb")
+    ledger = Ledger(output_dir=(output_dir / "not-existing"), bank="dkb")
     assert ledger.output_dir == Path.cwd()
 
-    # bank_type not supported
+    # bank not supported
     with pytest.raises(Exception) as exc_info:
-        ledger = Ledger(output_dir=output_dir, bank_type="not-supported")
-    assert str(exc_info.value) == "The bank_format you provided is not supported."
+        ledger = Ledger(output_dir=output_dir, bank="not-supported")
+    assert str(exc_info.value) == "The bank you provided is not supported."
 
 
 def test_init_tx(output_dir: Path, export_path: Path) -> None:
     """Tests if transactions get read."""
-    ledger = Ledger(output_dir=output_dir, bank_type="dkb")
+    ledger = Ledger(output_dir=output_dir, bank="dkb")
     assert ledger.tx.empty
 
     ledger.init_tx(export_path=export_path)
@@ -96,18 +96,18 @@ def test_init_tx(output_dir: Path, export_path: Path) -> None:
 
 def test_init_metadata(output_dir: Path, export_path: Path) -> None:
     """Tests for metadata generation."""
-    ledger = Ledger(output_dir=output_dir, bank_type="dkb")
+    ledger = Ledger(output_dir=output_dir, bank="dkb")
     assert ledger.metadata.empty
 
     ledger.init_tx(export_path=export_path)
     ledger.init_metadata(export_path=export_path)
     assert set(ledger.metadata["starting_balance"]) == {0}
-    assert set(ledger.metadata["bank_format"]) == {"dkb"}
+    assert set(ledger.metadata["bank"]) == {"dkb"}
 
 
 def test_init_mapping(output_dir: Path, export_path: Path) -> None:
     """Tests for mapping generation."""
-    ledger = Ledger(output_dir=output_dir, bank_type="dkb")
+    ledger = Ledger(output_dir=output_dir, bank="dkb")
     assert ledger.mapping.empty
 
     ledger.init_tx(export_path=export_path)
@@ -126,7 +126,7 @@ def test_update_tx_mapping(
     output_dir: Path, export_path: Path, mapping_stub: pd.DataFrame
 ) -> None:
     """Tests if updating transactions with mapping is done correctly."""
-    ledger = Ledger(output_dir=output_dir, bank_type="dkb")
+    ledger = Ledger(output_dir=output_dir, bank="dkb")
 
     ledger.init_tx(export_path=export_path)
     ledger.init_metadata(export_path=export_path)
@@ -147,7 +147,7 @@ def test_init_history(
     output_dir: Path, export_path: Path, coalesce_stub: pd.DataFrame
 ) -> None:
     """Tests if the history is initialised correctly."""
-    ledger = Ledger(output_dir=output_dir, bank_type="dkb")
+    ledger = Ledger(output_dir=output_dir, bank="dkb")
     ledger.init_tx(export_path)
     ledger.init_metadata(export_path)
     ledger.update_mapping()
@@ -162,7 +162,7 @@ def test_init_c(
     output_dir: Path, export_path: Path, coalesce_stub: pd.DataFrame
 ) -> None:
     """Tests if coalesced transactions are generated correctly."""
-    ledger = Ledger(output_dir=output_dir, bank_type="dkb")
+    ledger = Ledger(output_dir=output_dir, bank="dkb")
     ledger.init_tx(export_path)
     ledger.init_metadata(export_path)
     ledger.update_mapping()
@@ -186,7 +186,7 @@ def test_init_tx_d(
     output_dir: Path, export_path: Path, distribute_stub: pd.DataFrame
 ) -> None:
     """Tests if distributed transactions are generated correctly."""
-    ledger = Ledger(output_dir=output_dir, bank_type="dkb")
+    ledger = Ledger(output_dir=output_dir, bank="dkb")
     ledger.init_tx(export_path)
     ledger.init_metadata(export_path)
     ledger.update_mapping()
@@ -209,7 +209,7 @@ def test_init_tx_d(
 
 def test_write(output_dir: Path, export_path: Path) -> None:
     """Tests if all tables are written."""
-    ledger = Ledger(output_dir=output_dir, bank_type="dkb")
+    ledger = Ledger(output_dir=output_dir, bank="dkb")
     ledger.update(export_path)
     ledger.write()
 
@@ -217,8 +217,8 @@ def test_write(output_dir: Path, export_path: Path) -> None:
         "transactions.csv",
         "metadata.csv",
         "mapping.csv",
-        "tx_c.csv",
-        "tx_d.csv",
+        "tx_coalesced.csv",
+        "tx_distributed.csv",
     ]:
         tmp = output_dir / item
         assert tmp.exists()
