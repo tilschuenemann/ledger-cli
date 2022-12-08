@@ -96,12 +96,12 @@ class BankInterface:
             bank_format=bank_format, export_path=export_path
         )
 
-        revenue = tx["amount"].sum()
-        tmp_start_balance: float = 0
+        tmp_start_balance: float = 0.0
 
-        if start_balance == end_balance == 0:
+        if start_balance == end_balance == 0.0:
             pass
-        elif start_balance == 0 and end_balance != 0:
+        elif start_balance == 0.0 and end_balance != 0.0:
+            revenue = tx["amount"].sum()
             tmp_start_balance = end_balance - float(revenue)
         else:
             tmp_start_balance = start_balance
@@ -127,9 +127,9 @@ class BankInterface:
           end balance of given export
         """
         BankInterface().is_supported(bank_format=bank_format)
-        start_balance = 0
+        start_balance = 0.0
         if bank_format in ["dkb", "sp"]:
-            start_balance = 0
+            start_balance = 0.0
 
         return start_balance
 
