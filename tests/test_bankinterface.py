@@ -15,18 +15,18 @@ from ledgercli.bankinterface import BankInterface
 
 
 def test_bankinterfaces() -> None:
-    """Tests for valid formats and for raising exception if a non-supported bank_format is provided."""
+    """Tests for valid formats and for raising exception if a non-supported bank is provided."""
     # valid formats
-    assert BankInterface().list_bank_formats() == ["dkb", "sp"]
+    assert BankInterface().list_banks() == ["dkb", "sp"]
 
     # invalid formats
     with pytest.raises(Exception) as exc_info:
         BankInterface().is_supported("this_format_is_not_supported")
-    assert str(exc_info.value) == "The bank_format you provided is not supported."
+    assert str(exc_info.value) == "The bank you provided is not supported."
 
 
 @pytest.mark.parametrize(
-    "bank_format, export_path,empty_export_path,amount,recipient, date, start_balance, end_balance",
+    "bank, export_path,empty_export_path,amount,recipient, date, start_balance, end_balance",
     [
         (
             "dkb",
@@ -51,7 +51,7 @@ def test_bankinterfaces() -> None:
     ],
 )
 def test_banks(
-    bank_format: str,
+    bank: str,
     export_path: Path,
     empty_export_path: Path,
     amount: float,
@@ -62,10 +62,10 @@ def test_banks(
 ) -> None:
     """Tests each bank for correct transactions, start and end balance for both valid and empty exports."""
     # valid input
-    assert start_balance == BankInterface().get_start_balance(bank_format, export_path)
-    assert end_balance == BankInterface().get_end_balance(bank_format, export_path)
+    assert start_balance == BankInterface().get_start_balance(bank, export_path)
+    assert end_balance == BankInterface().get_end_balance(bank, export_path)
 
-    df = BankInterface().get_transactions(bank_format, export_path)
+    df = BankInterface().get_transactions(bank, export_path)
 
     assert set(df["amount"]) == {amount}
     assert set(df["recipient"]) == {recipient}
@@ -73,7 +73,7 @@ def test_banks(
 
     # empty input
     with pytest.raises(Exception) as exc_info:
-        BankInterface().get_transactions(bank_format, empty_export_path)
+        BankInterface().get_transactions(bank, empty_export_path)
     assert (
         str(exc_info.value)
         == "The provided export contains no transactions. Please supply a non-empty export!"

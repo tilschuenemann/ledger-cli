@@ -9,7 +9,7 @@ from ledgercli.main import Ledger
 
 @click.group()
 def cli() -> None:
-    """Group for all commands."""
+    """CLI Utility for Ledger."""
     pass
 
 
@@ -43,20 +43,14 @@ def cli() -> None:
 )
 @click.option(
     "-b",
-    "--btype",
-    type=click.Choice(BankInterface().list_bank_formats()),
+    "--bank",
+    type=click.Choice(BankInterface().list_banks()),
     nargs=1,
     help="Specify from which bank your export is from. If none is specified, bank_format will be read from metadata in output_dir.",
 )
-def update(output_dir: Path, export_path: Path | None, btype: str | None) -> None:
-    """Updates the Ledger.
-
-    Args:
-      output_dir: path where output gets written to
-      export_path: path to export
-      btype: bank format
-    """
-    ledger = Ledger(output_dir=output_dir, bank_type=btype)
+def update(output_dir: Path, export_path: Path | None, bank: str | None) -> None:
+    """Updates the Ledger."""
+    ledger = Ledger(output_dir=output_dir, bank=bank)
     ledger.update(export_path=export_path)
     ledger.write()
 

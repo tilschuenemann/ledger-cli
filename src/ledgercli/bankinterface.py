@@ -1,6 +1,5 @@
 """BankInterface."""
 from pathlib import Path
-from typing import List
 
 import pandas as pd
 
@@ -9,41 +8,41 @@ class BankInterface:
     """BankInterface."""
 
     @staticmethod
-    def list_bank_formats() -> List[str]:
+    def list_banks() -> list[str]:
         """Lists all currently supported bank formats."""
         return ["dkb", "sp"]
 
     @staticmethod
-    def is_supported(bank_format: str) -> str:
-        """Returns provided bank_format if supported and throws exception otherwise.
+    def is_supported(bank: str) -> str:
+        """Returns provided bank if supported and throws exception otherwise.
 
         Args:
-          bank_format: str
+          bank: str
 
         Returns:
-          bank_format
+          bank
 
         Raises:
-          Exception, if bank_format is not supported.
+          Exception, if bank is not supported.
         """
-        if bank_format not in BankInterface().list_bank_formats():
-            raise Exception("The bank_format you provided is not supported.")
+        if bank not in BankInterface().list_banks():
+            raise Exception("The bank you provided is not supported.")
 
-        return bank_format
+        return bank
 
     @staticmethod
-    def get_transactions(bank_format: str, export_path: Path) -> pd.DataFrame:
-        """Reads transactions from export_path with bank_format.
+    def get_transactions(bank: str, export_path: Path) -> pd.DataFrame:
+        """Reads transactions from export_path with bank.
 
         Args:
-          bank_format:
+          bank:
           export_path:
 
         Returns:
           transactions dataframe
         """
-        BankInterface().is_supported(bank_format=bank_format)
-        if bank_format == "dkb":
+        BankInterface().is_supported(bank=bank)
+        if bank == "dkb":
             tmp = pd.read_csv(
                 export_path,
                 sep=";",
@@ -56,7 +55,7 @@ class BankInterface:
             )
             df = tmp.iloc[:, [0, 3, 7]].copy()
             df.columns = ["date", "recipient", "amount"]
-        elif bank_format == "sp":
+        elif bank == "sp":
             tmp = pd.read_csv(
                 export_path,
                 sep=";",
@@ -76,29 +75,29 @@ class BankInterface:
         return df
 
     @staticmethod
-    def get_metadata(bank_format: str, export_path: Path) -> pd.DataFrame:
+    def get_metadata(bank: str, export_path: Path) -> pd.DataFrame:
         """Creates metadata dataframe from export.
 
-        Metadata stores bank_format and the starting balance which is needed for historical balances.
+        Metadata stores bank and the starting balance which is needed for historical balances.
 
         Args:
-          bank_format:
+          bank:
           export_path:
 
         Returns:
           dataframe
         """
-        tx = BankInterface().get_transactions(bank_format, export_path)
+        tx = BankInterface().get_transactions(bank, export_path)
         start_balance = BankInterface().get_start_balance(
-            bank_format=bank_format, export_path=export_path
+            bank=bank, export_path=export_path
         )
         end_balance = BankInterface().get_end_balance(
-            bank_format=bank_format, export_path=export_path
+            bank=bank, export_path=export_path
         )
 
         tmp_start_balance: float = 0.0
 
-        if start_balance == end_balance == 0.0:
+        if start_balance == 0.0 and end_balance == 0.0:
             pass
         elif start_balance == 0.0 and end_balance != 0.0:
             revenue = tx["amount"].sum()
@@ -109,45 +108,45 @@ class BankInterface:
         return pd.DataFrame(
             {
                 "starting_balance": [tmp_start_balance],
-                "bank_format": [bank_format],
+                "bank": [bank],
             }
         )
 
     @staticmethod
-    def get_start_balance(bank_format: str, export_path: Path) -> float:
+    def get_start_balance(bank: str, export_path: Path) -> float:
         """Reads start balance of given export.
 
-        If a bank_format doesn't provide a starting balance, 0 is returned.
+        If a bank doesn't provide a starting balance, 0 is returned.
 
         Args:
-          bank_format
+          bank
           export_path
 
         Returns:
           end balance of given export
         """
-        BankInterface().is_supported(bank_format=bank_format)
+        BankInterface().is_supported(bank=bank)
         start_balance = 0.0
-        if bank_format in ["dkb", "sp"]:
+        if bank in ["dkb", "sp"]:
             start_balance = 0.0
 
         return start_balance
 
     @staticmethod
-    def get_end_balance(bank_format: str, export_path: Path) -> float:
+    def get_end_balance(bank: str, export_path: Path) -> float:
         """Reads end balance of given export.
 
-        If a bank_format doesn't provide a ending balance, 0 is returned.
+        If a bank doesn't provide a ending balance, 0 is returned.
 
         Args:
-          bank_format
+          bank
           export_path
 
         Returns:
           end balance of given export
         """
-        BankInterface().is_supported(bank_format=bank_format)
-        if bank_format == "dkb":
+        BankInterface().is_supported(bank=bank)
+        if bank == "dkb":
             header = pd.read_csv(
                 export_path,
                 sep=";",
