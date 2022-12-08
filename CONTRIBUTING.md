@@ -12,9 +12,9 @@ Here is a list of important resources for contributors:
 - [Code of Conduct]
 
 [mit license]: https://opensource.org/licenses/MIT
-[source code]: https://github.com/tilschuenemann/ledgercli
-[documentation]: https://ledgercli.readthedocs.io/
-[issue tracker]: https://github.com/tilschuenemann/ledgercli/issues
+[source code]: https://github.com/tilschuenemann/ledger-cli
+[documentation]: https://ledger-cli.readthedocs.io/
+[issue tracker]: https://github.com/tilschuenemann/ledger-cli/issues
 
 ## How to report a bug
 
@@ -54,7 +54,7 @@ or the command-line interface:
 
 ```console
 $ poetry run python
-$ poetry run ledgercli
+$ poetry run ledger-cli
 ```
 
 [poetry]: https://python-poetry.org/
