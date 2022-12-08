@@ -1,0 +1,13 @@
+{
+  "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
+  "author": "Til Sch\u00fcnemann",
+  "copyright_year": "2022",
+  "development_status": "Development Status :: 3 - Alpha",
+  "email": "til.schuenemann@mailbox.org",
+  "friendly_name": "ledger-cli",
+  "github_user": "tilschuenemann",
+  "license": "MIT",
+  "package_name": "ledger-cli",
+  "project_name": "ledgercli",
+  "version": "0.0.0"
+}

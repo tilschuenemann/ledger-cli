@@ -1,188 +1,73 @@
-# ledgercli
+# ledger-cli
 
-ledgercli takes your banks csv statements, generates reports in a transparent format
-and serves as an interface for data visualisation.
+[![PyPI](https://img.shields.io/pypi/v/ledgercli.svg)][pypi_]
+[![Status](https://img.shields.io/pypi/status/ledgercli.svg)][status]
+[![Python Version](https://img.shields.io/pypi/pyversions/ledgercli)][python version]
+[![License](https://img.shields.io/pypi/l/ledgercli)][license]
 
-# Installation
+[![Read the documentation at https://ledgercli.readthedocs.io/](https://img.shields.io/readthedocs/ledgercli/latest.svg?label=Read%20the%20Docs)][read the docs]
+[![Tests](https://github.com/tilschuenemann/ledgercli/workflows/Tests/badge.svg)][tests]
+[![Codecov](https://codecov.io/gh/tilschuenemann/ledgercli/branch/main/graph/badge.svg)][codecov]
 
-```bash
-pip install ledgercli
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
+
+[pypi_]: https://pypi.org/project/ledgercli/
+[status]: https://pypi.org/project/ledgercli/
+[python version]: https://pypi.org/project/ledgercli
+[read the docs]: https://ledgercli.readthedocs.io/
+[tests]: https://github.com/tilschuenemann/ledgercli/actions?workflow=Tests
+[codecov]: https://app.codecov.io/gh/tilschuenemann/ledgercli
+[pre-commit]: https://github.com/pre-commit/pre-commit
+[black]: https://github.com/psf/black
+
+## Features
+
+- TODO
+
+## Requirements
+
+- TODO
+
+## Installation
+
+You can install _ledger-cli_ via [pip] from [PyPI]:
+
+```console
+$ pip install ledgercli
 ```
 
-# Usage
+## Usage
 
-Creating the initial ledger in the current directory:
+Please see the [Command-line Reference] for details.
 
-```bash
-ledgercli update --e export.csv --b "dkb"
-```
+## Contributing
 
-Appending newer exports:
+Contributions are very welcome.
+To learn more, see the [Contributor Guide].
 
-```bash
-ledgercli update --e appendage.csv --b "dkb"
-# if bank_format is specified in your metadata.csv, you don't have to specify it again:
-ledgercli update --e appendage.csv
-```
+## License
 
-Rewriting ledger and updating mappingtable.csv, , history.csv, ledger_distributed.csv, ledger_coalesced.csv:
+Distributed under the terms of the [MIT license][license],
+_ledger-cli_ is free and open source software.
 
-```bash
-ledgercli update
-```
+## Issues
 
-You can list the currently supported bank formats:
+If you encounter any problems,
+please [file an issue] along with a detailed description.
 
-```bash
-ledgercli list-formats
-```
+## Credits
 
-These files get written to your output_folder:
+This project was generated from [@cjolowicz]'s [Hypermodern Python Cookiecutter] template.
 
-- ledger.csv
-- mappingtable.csv
-- metadata.csv
-- history.csv
-- transactions_coalesced.csv
-- transactions_distributed.csv
+[@cjolowicz]: https://github.com/cjolowicz
+[pypi]: https://pypi.org/
+[hypermodern python cookiecutter]: https://github.com/cjolowicz/cookiecutter-hypermodern-python
+[file an issue]: https://github.com/tilschuenemann/ledgercli/issues
+[pip]: https://pip.pypa.io/
 
-# Features
+<!-- github-only -->
 
-### Mapping Table
-
-You're able to provide three different labels, a clean recipient name
-and an occurence for each unique recipient in _mappingtable.csv_:
-
-| recipient       | recipient_clean | label1    | label2 | label3 | occurence |
-| --------------- | --------------- | --------- | ------ | ------ | --------- |
-| grocerystore+++ | Grocery Store   | Groceries |        |        | 0         |
-
-_mappingtable.csv_ is read and mapped onto the ledger everytime you use ledgercli.
-
-### Custom Values and Coalescing
-
-For the majority of the data columns in the ledger.csv there is a "\_custom"-suffixed twin:
-
-| amount | amount_custom |
-| ------ | ------------- |
-| -50    |               |
-| -10    | 5             |
-
-Ledger writes a _transactions_coalesced.csv_, where every pair is merged. "\_custom"
-values take precedence.
-
-Custom values can be provided for these columns:
-
-- amount
-- date
-- recipient_clean
-- label1
-- label2
-- label3
-- occurence
-
-### Support for different providers
-
-Ledger works with a simple base format (date, amount and recipient column) and
-can be adapted to read exports from other providers than DKB too.
-
-Currently available providers:
-
-- DKB
-
-[Feel free to create a pull request!](https://github.com/tilschuenemann/ledger_refactor/pulls)
-
-### Distribution of frequent events
-
-Certain transactions occur once every now and then and might dilute meaningful interpretation, eg. an insurance bill only be reported at the
-start of the year:
-
-| amount | date       | recipient       | ... | occurence |
-| ------ | ---------- | --------------- | --- | --------- |
-| -60    | 2022-01-15 | insurance comp. | ... | **12**    |
-
-Determining average fixed costs per month is now very easy, as you can distribute this transaction 12
-months into the future, starting from the current month:
-
-| amount | date       | recipient       | ... | occurence |
-| ------ | ---------- | --------------- | --- | --------- |
-| -5     | 2022-01-01 | insurance comp. | ... | 1         |
-| -5     | 2022-02-01 | insurance comp. | ... | 1         |
-| ...    | ...        | ...             | ... | ...       |
-| -5     | 2022-12-01 | insurance comp. | ... | 1         |
-
-The result of this operation is written to _transactions_distributed.csv_ .
-
-Note that the original date will be set to the start of the month as well.
-
-Using a negative integer will distribute the transaction into the past, starting from
-the original dates month.
-
-Integers 0, 1, -1 don't get affected by this. I personally use 1 and -1 to mark
-transactions which have a fixed-cost character but don't appear frequently (eg. groceries).
-
-### Historical View
-
-Another export is the _history.csv_, where you'll find your day-to-day spendings and
-your daily balance (incase your bank exports feature a starting or end balance).
-
-| date       | amount | balance |
-| ---------- | ------ | ------- |
-| 2022-01-01 | -10    | 90      |
-| 2022-01-02 | 120    | 210     |
-| 2021-01-05 | -5     | 205     |
-
-If you're bank doesn't provide any means of calculating a balance, you can write it manually in the _metadata.csv_:
-
-| starting_balance | bank_format |
-| ---------------- | ----------- |
-| **100**          | dkb         |
-
-# Developer Documentation
-
-All internal dataframes get initialised empty with correct datatypes.
-
-The functions for filling the dataframes are called in this order:
-
-1.  ledger
-
-    1.a mapping_table (depends on recipients)
-
-    1.b transactions_coalesced
-
-    1.c transactions_distributed
-
-2.  metadata
-
-    2.a history (depends on starting_balance)
-
-### Ledger object
-
-The initial Ledger object can be created like this:
-
-```python
-from pathlib import Path
-from ledgercli.ledger import Ledger
-
-output_path = Path("path/to/output_folder")
-export_path = Path("path/to/export.csv")
-bank="yourbankformat"
-
-# The Ledger object caches its initial output_path and bank_format and uses them
-# as fallback if they are not provided.
-l = Ledger(output_path=output_path, export_path=export_path, bank=bank)
-
-# Appending another export:
-appendage_path = Path("path/to/another_export.csv")
-l.update(export_path)
-
-# Updating your Ledger object after you made modifications to the files in the output_folder:
-l.update()
-
-# Writing to disk:
-l.write()
-```
-
-# Acknowledgements
-
-This is a hobby project that I pursue with my free time - unexpected behavior or the discontinuation of the project can happen at any time.
+[license]: https://github.com/tilschuenemann/ledgercli/blob/main/LICENSE
+[contributor guide]: https://github.com/tilschuenemann/ledgercli/blob/main/CONTRIBUTING.md
+[command-line reference]: https://ledgercli.readthedocs.io/en/latest/usage.html
