@@ -68,14 +68,9 @@ class Ledger:
         Takes all recipients from transactions, removes recipients already featured in mapping table and appends
         them to current mapping table. Sorts mapping table after.
         """
-        tr_recipients = set(self.tx["recipient"].unique())
-
-        try:
-            mp_recipients = set(self.mapping["recipient"].unique())
-        except KeyError:
-            mp_recipients = set()
-
-        recipients = tr_recipients - mp_recipients
+        tx_recipients = set(self.tx["recipient"].unique())
+        mp_recipients = set(self.mapping["recipient"].unique())
+        recipients = tx_recipients - mp_recipients
         new_mapping = pd.DataFrame(recipients, columns=["recipient"])
 
         self.mapping = pd.concat(
