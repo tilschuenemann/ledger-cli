@@ -157,10 +157,7 @@ class Ledger:
         tmp_history["balance"] = (
             tmp_history["amount"].cumsum() + self.metadata["starting_balance"].iloc[0]
         )
-
         self.history = tmp_history
-        # TODO why did I use this if it gets rewritten everytime anyway?
-        # self.history = pd.concat([self.history, tmp_history], ignore_index=True)
 
     def update(self, export_path: Path | None = None) -> None:
         """Wrapper for updating the Ledger.
