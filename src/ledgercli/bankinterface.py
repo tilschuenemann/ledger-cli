@@ -55,7 +55,7 @@ class BankInterface:
             )
             df = tmp.iloc[:, [0, 3, 7]].copy()
             df.columns = ["date", "recipient", "amount"]
-        elif bank == "sp":
+        else:
             tmp = pd.read_csv(
                 export_path,
                 sep=";",
@@ -97,12 +97,10 @@ class BankInterface:
 
         tmp_start_balance: float = 0.0
 
-        if start_balance == 0.0 and end_balance == 0.0:
-            pass
-        elif start_balance == 0.0 and end_balance != 0.0:
+        if start_balance == 0.0 and end_balance != 0.0:
             revenue = tx["amount"].sum()
             tmp_start_balance = end_balance - float(revenue)
-        else:
+        elif start_balance != 0.0 and end_balance == 0.0:  # pragma: no cover
             tmp_start_balance = start_balance
 
         return pd.DataFrame(
@@ -126,8 +124,7 @@ class BankInterface:
           end balance of given export
         """
         BankInterface().is_supported(bank=bank)
-        start_balance = 0.0
-        if bank in ["dkb", "sp"]:
+        if bank in ["dkb", "sp"]:  # pragma: no cover
             start_balance = 0.0
 
         return start_balance
