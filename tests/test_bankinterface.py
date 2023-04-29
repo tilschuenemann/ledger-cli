@@ -8,70 +8,71 @@ the expected values and redacted other information but still keeping the report 
 from datetime import datetime
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from ledgercli.bankinterface import BankInterface
-
+from typing import Optional
 
 def test_bankinterfaces() -> None:
     """Tests for valid formats and for raising exception if a non-supported bank is provided."""
     # valid formats
     assert BankInterface().list_banks() == ["dkb", "sp"]
 
-    # invalid formats
     with pytest.raises(Exception) as exc_info:
-        BankInterface().is_supported("this_format_is_not_supported")
-    assert str(exc_info.value) == "The bank you provided is not supported."
+        BankInterface().get_start_balance(bank="not-supported",export_path=Path.cwd())
+    assert (
+        str(exc_info.value)
+        == "'The bank you provided is not supported.'"
+    )
+    with pytest.raises(Exception) as exc_info:
+        BankInterface().get_end_balance(bank="not-supported",export_path=Path.cwd())
+    assert (
+        str(exc_info.value)
+        == "'The bank you provided is not supported.'"
+    )
+    with pytest.raises(Exception) as exc_info:
+        BankInterface().get_metadata(bank="not-supported",export_path=Path.cwd())
+    assert (
+        str(exc_info.value)
+        == "'The bank you provided is not supported.'"
+    )
 
 
 @pytest.mark.parametrize(
-    "bank, export_path,empty_export_path,amount,recipient, date, start_balance, end_balance",
-    [
-        (
-            "dkb",
-            Path("tests/dkb_sample.csv"),
-            Path("tests/dkb_empty.csv"),
-            1000.01,
-            "Test",
-            pd.to_datetime("2021-01-01"),
-            0.0,
-            1000.01,
-        ),
-        (
-            "sp",
-            Path("tests/sp_sample.csv"),
-            Path("tests/sp_empty.csv"),
-            1000.01,
-            "Test",
-            pd.to_datetime("2021-01-01"),
-            0.0,
-            0.0,
-        ),
-    ],
+        "bank, export_path, is_start_balance_nan, is_end_balance_nan, start_balance, end_balance",
+        [
+            ("dkb",Path("tests/dkb_sample.csv"),True,False,None,1000.01),
+            ("sp", Path("tests/sp_sample.csv"),True,True,None,None)
+        ]
 )
-def test_banks(
-    bank: str,
-    export_path: Path,
-    empty_export_path: Path,
-    amount: float,
-    recipient: str,
-    date: datetime,
-    start_balance: float,
-    end_balance: float,
-) -> None:
-    """Tests each bank for correct transactions, start and end balance for both valid and empty exports."""
-    # valid input
-    assert start_balance == BankInterface().get_start_balance(bank, export_path)
-    assert end_balance == BankInterface().get_end_balance(bank, export_path)
+def test_bankinterface(bank: str, export_path: Path,is_start_balance_nan: bool, is_end_balance_nan: bool,start_balance: Optional[float], end_balance: Optional[float]) -> None:
 
     df = BankInterface().get_transactions(bank, export_path)
+    assert set(df["amount"]) == {1000.01}
+    assert set(df["recipient"]) == {"Test"}
+    assert set(df["date"]) == {pd.to_datetime("2021-01-01")}
 
-    assert set(df["amount"]) == {amount}
-    assert set(df["recipient"]) == {recipient}
-    assert set(df["date"]) == {date}
+    assert np.isnan(BankInterface().get_start_balance(bank, export_path)) == is_start_balance_nan
+    if is_start_balance_nan is False:
+        assert BankInterface().get_start_balance(bank, export_path) == start_balance
 
-    # empty input
+    assert np.isnan(BankInterface().get_end_balance(bank, export_path)) == is_end_balance_nan
+    if is_end_balance_nan is False:
+        assert BankInterface().get_end_balance(bank, export_path) == end_balance
+
+    metadata = BankInterface().get_metadata(bank, export_path)
+    assert set(metadata["bank"]) == {bank}
+    assert set(metadata["starting_balance"]) == {0.0}
+
+
+@pytest.mark.parametrize(
+        "bank, empty_export_path",
+        [("dkb",Path("tests/dkb_empty.csv")),
+          ("sp",Path("tests/sp_empty.csv"))]
+)
+def test_empty_export(bank: str, empty_export_path: Path) -> None:
     with pytest.raises(Exception) as exc_info:
         BankInterface().get_transactions(bank, empty_export_path)
     assert (

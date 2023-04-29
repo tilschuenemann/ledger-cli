@@ -1,6 +1,7 @@
 """BankInterface."""
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 
@@ -13,24 +14,6 @@ class BankInterface:
         return ["dkb", "sp"]
 
     @staticmethod
-    def is_supported(bank: str) -> str:
-        """Returns provided bank if supported and throws exception otherwise.
-
-        Args:
-          bank: str
-
-        Returns:
-          bank
-
-        Raises:
-          Exception, if bank is not supported.
-        """
-        if bank not in BankInterface().list_banks():
-            raise Exception("The bank you provided is not supported.")
-
-        return bank
-
-    @staticmethod
     def get_transactions(bank: str, export_path: Path) -> pd.DataFrame:
         """Reads transactions from export_path with bank.
 
@@ -40,8 +23,13 @@ class BankInterface:
 
         Returns:
           transactions dataframe
+
+        Raises:
+          Exception: if parsed export has no transactions
         """
-        BankInterface().is_supported(bank=bank)
+        if bank not in BankInterface().list_banks():
+            raise KeyError("The bank you provided is not supported.")
+
         if bank == "dkb":
             tmp = pd.read_csv(
                 export_path,
@@ -79,6 +67,7 @@ class BankInterface:
         """Creates metadata dataframe from export.
 
         Metadata stores bank and the starting balance which is needed for historical balances.
+        If the bank exports provides no start or end balance to calculate the start balance, it is set to 0.
 
         Args:
           bank:
@@ -88,24 +77,24 @@ class BankInterface:
           dataframe
         """
         tx = BankInterface().get_transactions(bank, export_path)
-        start_balance = BankInterface().get_start_balance(
+        tmp_start_balance = BankInterface().get_start_balance(
             bank=bank, export_path=export_path
         )
         end_balance = BankInterface().get_end_balance(
             bank=bank, export_path=export_path
         )
 
-        tmp_start_balance: float = 0.0
+        start_balance: float = 0.0
 
-        if start_balance == 0.0 and end_balance != 0.0:
+        if np.isnan(end_balance) and ~np.isnan(tmp_start_balance):  # pragma: no cover
+            start_balance = tmp_start_balance
+        elif np.isnan(tmp_start_balance) and ~np.isnan(end_balance):
             revenue = tx["amount"].sum()
-            tmp_start_balance = end_balance - float(revenue)
-        elif start_balance != 0.0 and end_balance == 0.0:  # pragma: no cover
-            tmp_start_balance = start_balance
+            start_balance = end_balance - float(revenue)
 
         return pd.DataFrame(
             {
-                "starting_balance": [tmp_start_balance],
+                "starting_balance": [start_balance],
                 "bank": [bank],
             }
         )
@@ -114,26 +103,29 @@ class BankInterface:
     def get_start_balance(bank: str, export_path: Path) -> float:
         """Reads start balance of given export.
 
-        If a bank doesn't provide a starting balance, 0 is returned.
+        If a bank doesn't provide a starting balance, np.nan is returned.
 
         Args:
           bank
           export_path
 
         Returns:
-          end balance of given export
+          start balance of given export
         """
-        BankInterface().is_supported(bank=bank)
-        if bank in ["dkb", "sp"]:  # pragma: no cover
-            start_balance = 0.0
+        if bank not in BankInterface().list_banks():
+            raise KeyError("The bank you provided is not supported.")
 
-        return start_balance
+        start_balance = np.nan
+        if bank in ["dkb", "sp"]:
+            start_balance = np.nan
+
+        return start_balance  # pragma: no cover
 
     @staticmethod
     def get_end_balance(bank: str, export_path: Path) -> float:
         """Reads end balance of given export.
 
-        If a bank doesn't provide a ending balance, 0 is returned.
+        If a bank doesn't provide a ending balance, np.nan is returned.
 
         Args:
           bank
@@ -141,8 +133,14 @@ class BankInterface:
 
         Returns:
           end balance of given export
+
+        Raises:
+          KeyError: if bank is not supported
         """
-        BankInterface().is_supported(bank=bank)
+        if bank not in BankInterface().list_banks():
+            raise KeyError("The bank you provided is not supported.")
+
+        end_balance = np.nan
         if bank == "dkb":
             header = pd.read_csv(
                 export_path,
@@ -159,6 +157,5 @@ class BankInterface:
             end_balance = float(
                 header.iloc[2, 1].replace(".", "").replace(",", ".").replace(" EUR", "")
             )
-        else:
-            end_balance = 0.0
+
         return end_balance

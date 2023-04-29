@@ -28,7 +28,10 @@ class Ledger:
                     "Please supply a valid BANK! Couldn't read BANK from metadata."
                 ) from exc
         else:
-            self.bank = BankInterface().is_supported(bank)
+            if bank in BankInterface().list_banks():
+                self.bank = bank
+            else:
+                raise KeyError("Please supply a valid BANK!")
 
     def _read_existing(self) -> None:
         files = ["transactions.csv", "mapping.csv", "metadata.csv"]

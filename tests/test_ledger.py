@@ -82,7 +82,7 @@ def test_initialisation(output_dir: Path) -> None:
     # bank not supported
     with pytest.raises(Exception) as exc_info:
         ledger = Ledger(output_dir=output_dir, bank="not-supported")
-    assert str(exc_info.value) == "The bank you provided is not supported."
+    assert str(exc_info.value) == "'Please supply a valid BANK!'"
 
 
 def test_init_tx(output_dir: Path, export_path: Path) -> None:
