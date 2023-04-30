@@ -11,7 +11,17 @@ class Ledger:
     """Ledger."""
 
     def __init__(self, output_dir: Path, bank: str | None) -> None:
-        """Initializes the Ledger."""
+        """Initializes the Ledger.
+
+        If no output_dir is provided, the current working dir will be used.
+
+        Args:
+          output_dir: dir where files get written to
+          bank: which bank format to parse
+
+        Raises:
+          Exception: if no bank is provided and bank can't be read from metadata file
+        """
         if output_dir is None or output_dir.exists() is False:
             self.output_dir = Path.cwd()
         else:
@@ -34,6 +44,10 @@ class Ledger:
                 raise KeyError("Please supply a valid BANK!")
 
     def _read_existing(self) -> None:
+        """Read existing transactions, mapping and metadata files.
+
+        If a file is missing none of the existing ones will be used.
+        """
         files = ["transactions.csv", "mapping.csv", "metadata.csv"]
 
         dfs = []
@@ -46,7 +60,7 @@ class Ledger:
         if len(dfs) == 3:
             self.tx, self.mapping, self.metadata = dfs
 
-    def init_tx(self, export_path: Path) -> None:
+    def _init_tx(self, export_path: Path) -> None:
         """Add export to transactions.
 
         Args:
@@ -55,7 +69,7 @@ class Ledger:
         tmp = BankInterface().get_transactions(bank=self.bank, export_path=export_path)
         self.tx = pd.concat([self.tx, tmp])
 
-    def init_metadata(self, export_path: Path) -> None:
+    def _init_metadata(self, export_path: Path) -> None:
         """Initialize metadata from export.
 
         Args:
@@ -65,7 +79,7 @@ class Ledger:
             bank=self.bank, export_path=export_path
         )
 
-    def update_mapping(self) -> None:
+    def _update_mapping(self) -> None:
         """Adds new transaction recipients to mapping table.
 
         Takes all recipients from transactions, removes recipients already featured in mapping table and appends
@@ -73,14 +87,15 @@ class Ledger:
         """
         tx_recipients = set(self.tx["recipient"].unique())
         mp_recipients = set(self.mapping["recipient"].unique())
-        recipients = tx_recipients - mp_recipients
-        new_mapping = pd.DataFrame(recipients, columns=["recipient"])
+        new_recipients = tx_recipients - mp_recipients
+        new_mapping = pd.DataFrame(new_recipients, columns=["recipient"])
 
         self.mapping = pd.concat(
             [self.mapping, new_mapping], ignore_index=True
         ).sort_values("recipient")
+        self.mapping["occurence"] = self.mapping["occurence"].fillna(0)
 
-    def update_tx_mapping(self) -> None:
+    def _update_tx_mapping(self) -> None:
         """Updates mappings in transactions with current mapping table."""
         tmp_tx = self.tx[
             [
@@ -99,8 +114,10 @@ class Ledger:
 
         self.tx = tmp_tx.merge(self.mapping, how="left", on="recipient")
 
-    def init_tx_c(self) -> None:
+    def _init_tx_c(self) -> None:
         """Coalesces all custom values."""
+        self.tx["date"] = pd.to_datetime(self.tx["date"])
+        self.tx["date_custom"] = pd.to_datetime(self.tx["date_custom"])
         tmp = self.tx.copy()
 
         coalesce_map = dict(
@@ -123,17 +140,17 @@ class Ledger:
         tmp["date"] = pd.to_datetime(tmp["date"], unit="ns")
         self.tx_c = tmp
 
-    def init_tx_d(self) -> None:
+    def _init_tx_d(self) -> None:
         """Distributes coalesced transactions based on occurence."""
-        df = self.tx_c
-        mask = pd.notna(df["occurence"]) & ~df["occurence"].between(
+        tmp = self.tx_c
+        mask = pd.notna(tmp["occurence"]) & ~tmp["occurence"].between(
             -1, 1, inclusive="both"
         )
-        repeat = df.loc[mask].copy()
-        rest = df.loc[~mask].copy()
+        distribute = tmp.loc[mask].copy()
+        keep = tmp.loc[~mask].copy()
 
-        if repeat.empty is False:
-            repeat["date"] = repeat.apply(
+        if distribute.empty is False:
+            distribute["date"] = distribute.apply(
                 lambda x: pd.date_range(
                     start=x.date if x.occurence > 0 else None,
                     end=x.date if x.occurence < 0 else None,
@@ -143,24 +160,25 @@ class Ledger:
                 axis=1,
             )
 
-            repeat = repeat.explode("date")
-            repeat["amount"] = repeat["amount"] / abs(repeat["occurence"])
-            repeat["occurence"] = np.where(repeat["occurence"] > 0, 1, -1)
+            distribute = distribute.explode("date")
+            distribute["amount"] = distribute["amount"] / abs(distribute["occurence"])
+            distribute["occurence"] = np.where(distribute["occurence"] > 0, 1, -1)
 
-        self.tx_d = pd.concat([rest, repeat], axis=0, ignore_index=True)
+        self.tx_d = pd.concat([keep, distribute], axis=0, ignore_index=True)
 
-    def init_history(self) -> None:
+    def _init_history(self) -> None:
         """Creates history dataframe.
 
         All transactions (TX) are grouped by date and a cumulative sum is calculated while taking starting_balance into account.
         history gets rewritten everytime it's generated and based on TX as there is no way to generate a valid cumulative sum
         after coalescing or distributing.
         """
-        tmp_history = self.tx.groupby(["date"], as_index=False)["amount"].sum()
-        tmp_history["balance"] = (
-            tmp_history["amount"].cumsum() + self.metadata["starting_balance"].iloc[0]
+        # self.tx["date"] = pd.to_datetime(self.tx["date"])
+        tmp = self.tx.groupby(["date"], as_index=False)["amount"].sum()
+        tmp["balance"] = (
+            tmp["amount"].cumsum() + self.metadata["starting_balance"].iloc[0]
         )
-        self.history = tmp_history
+        self.history = tmp
 
     def update(self, export_path: Path | None = None) -> None:
         """Wrapper for updating the Ledger.
@@ -169,16 +187,16 @@ class Ledger:
           export_path: path to export
         """
         if export_path is not None:
-            self.init_tx(export_path=export_path)
+            self._init_tx(export_path=export_path)
 
             if self.metadata.empty:
-                self.init_metadata(export_path=export_path)
+                self._init_metadata(export_path=export_path)
 
-        self.update_mapping()
-        self.update_tx_mapping()
-        self.init_tx_c()
-        self.init_tx_d()
-        self.init_history()
+        self._update_mapping()
+        self._update_tx_mapping()
+        self._init_tx_c()
+        self._init_tx_d()
+        self._init_history()
         self._assign_types()
 
     def write(self) -> None:
@@ -206,27 +224,27 @@ class Ledger:
     def _assign_types(self) -> None:
         types = {
             # base format
-            "amount": float,
-            "recipient": str,
+            "amount": "float",
+            "recipient": "str",
             "date": "datetime64[ns]",
             # custom
-            "amount_custom": float,
-            "recipient_clean_custom": str,
+            "amount_custom": "float",
+            "recipient_clean_custom": "str",
             "date_custom": "datetime64[ns]",
-            "label1_custom": str,
-            "label2_custom": str,
-            "label3_custom": str,
-            "occurence_custom": float,
+            "label1_custom": "str",
+            "label2_custom": "str",
+            "label3_custom": "str",
+            "occurence_custom": "float",
             # mapping
-            "recipient_clean": str,
-            "label1": str,
-            "label2": str,
-            "label3": str,
-            "occurence": float,
+            "recipient_clean": "str",
+            "label1": "str",
+            "label2": "str",
+            "label3": "str",
+            "occurence": "float",
             # history
-            "balance": float,
+            "balance": "float",
             # metadata
-            "bank": str,
+            "bank": "str",
             # helpers
             "type": "category",
             "week": "datetime64[ns]",
@@ -239,8 +257,11 @@ class Ledger:
             for k, v in types.items():
                 if k in df.columns:
                     df[k] = df[k].astype(v)
+                    if k != "recipient" and v == "str":
+                        df[k] = df[k].replace("nan", "")
 
     def _create_template(self) -> None:
+        """Creates internal dataframes with correct dtypes."""
         mapping_schema = {
             "recipient_clean": pd.Series(dtype=str),
             "label1": pd.Series(dtype=str),
