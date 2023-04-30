@@ -22,58 +22,18 @@ def export_path() -> Path:
     return Path("tests/dkb_sample.csv")
 
 
-@pytest.fixture
-def mapping_stub() -> pd.DataFrame:
-    """Creates a mapping stub."""
-    return pd.DataFrame(
-        {
-            "recipient": ["Test"],
-            "label1": ["test1"],
-            "label2": ["test2"],
-            "label3": ["test3"],
-            "occurence": [1000],
-            "recipient_clean": ["Test_clean"],
-        }
-    )
-
-
-@pytest.fixture
-def coalesce_stub() -> pd.DataFrame:
-    """Creates a stub for coalescing."""
-    tmp = pd.to_datetime("1999-01-01")
-    return pd.DataFrame(
-        {
-            "date_custom": [tmp],
-            "amount_custom": [9999],
-            "recipient_clean_custom": ["test_custom"],
-            "occurence_custom": [8888],
-            "label1_custom": ["test_custom"],
-            "label2_custom": ["test_custom"],
-            "label3_custom": ["test_custom"],
-            "recipient_clean": ["test_custom"],
-        }
-    )
-
-
-@pytest.fixture
-def distribute_stub() -> pd.DataFrame:
-    """Creates a stub for distribution."""
-    tmp = pd.to_datetime("2021-06-01")
-    return pd.DataFrame(
-        {
-            "date": [tmp, tmp, tmp],
-            "amount": [60, -60, 60],
-            "occurence": [2, -2, 0],
-        }
-    )
-
-
-def test_initialisation(output_dir: Path) -> None:
+def test_initialisation(output_dir: Path, export_path: Path) -> None:
     """Tests if the ledger gets initialised correctly."""
     # valid input
     ledger = Ledger(output_dir=output_dir, bank="dkb")
     assert ledger.output_dir == output_dir
     assert ledger.bank == "dkb"
+    assert ledger.tx.empty
+    assert ledger.tx_c.empty
+    assert ledger.tx_d.empty
+    assert ledger.history.empty
+    assert ledger.metadata.empty
+    assert ledger.mapping.empty
 
     # non existing output_dir defaults to cwd
     ledger = Ledger(output_dir=(output_dir / "not-existing"), bank="dkb")
@@ -84,23 +44,39 @@ def test_initialisation(output_dir: Path) -> None:
         ledger = Ledger(output_dir=output_dir, bank="not-supported")
     assert str(exc_info.value) == "'Please supply a valid BANK!'"
 
+    # init without bank, no metadata fallback
+    with pytest.raises(Exception) as exc_info:
+        ledger = Ledger(output_dir, bank=None)
+    assert (
+        str(exc_info.value)
+        == "Please supply a valid BANK! Couldn't read BANK from metadata."
+    )
+
+    # init without bank, fallback to metadata
+    ledger = Ledger(output_dir, bank="dkb")
+    ledger.update(export_path)
+    ledger.write()
+
+    assert ledger.metadata.empty is False
+    assert ledger.metadata["bank"].iloc[0] == "dkb"
+    assert (output_dir / "metadata.csv").exists()
+
+    ledger = Ledger(output_dir, bank=None)
+    assert ledger.metadata["bank"].iloc[0] == "dkb"
+
 
 def test_init_tx(output_dir: Path, export_path: Path) -> None:
     """Tests if transactions get read."""
     ledger = Ledger(output_dir=output_dir, bank="dkb")
-    assert ledger.tx.empty
-
-    ledger.init_tx(export_path=export_path)
+    ledger._init_tx(export_path=export_path)
     assert ledger.tx.empty is False
 
 
 def test_init_metadata(output_dir: Path, export_path: Path) -> None:
     """Tests for metadata generation."""
     ledger = Ledger(output_dir=output_dir, bank="dkb")
-    assert ledger.metadata.empty
-
-    ledger.init_tx(export_path=export_path)
-    ledger.init_metadata(export_path=export_path)
+    ledger._init_tx(export_path=export_path)
+    ledger._init_metadata(export_path=export_path)
     assert set(ledger.metadata["starting_balance"]) == {0}
     assert set(ledger.metadata["bank"]) == {"dkb"}
 
@@ -108,11 +84,9 @@ def test_init_metadata(output_dir: Path, export_path: Path) -> None:
 def test_init_mapping(output_dir: Path, export_path: Path) -> None:
     """Tests for mapping generation."""
     ledger = Ledger(output_dir=output_dir, bank="dkb")
-    assert ledger.mapping.empty
-
-    ledger.init_tx(export_path=export_path)
-    ledger.init_metadata(export_path=export_path)
-    ledger.update_mapping()
+    ledger._init_tx(export_path=export_path)
+    ledger._init_metadata(export_path=export_path)
+    ledger._update_mapping()
 
     assert set(ledger.mapping["recipient"]) == {"Test"}
     assert ledger.mapping["label1"].isnull().sum() == 1
@@ -122,19 +96,25 @@ def test_init_mapping(output_dir: Path, export_path: Path) -> None:
     assert ledger.mapping["occurence"].isnull().sum() == 1
 
 
-def test_update_tx_mapping(
-    output_dir: Path, export_path: Path, mapping_stub: pd.DataFrame
-) -> None:
+def test_update_tx_mapping(output_dir: Path, export_path: Path) -> None:
     """Tests if updating transactions with mapping is done correctly."""
     ledger = Ledger(output_dir=output_dir, bank="dkb")
+    ledger._init_tx(export_path=export_path)
+    ledger._init_metadata(export_path=export_path)
+    ledger._update_mapping()
 
-    ledger.init_tx(export_path=export_path)
-    ledger.init_metadata(export_path=export_path)
-    ledger.update_mapping()
+    ledger.mapping = pd.DataFrame(
+        {
+            "recipient": ["Test"],
+            "label1": ["test1"],
+            "label2": ["test2"],
+            "label3": ["test3"],
+            "occurence": [1000],
+            "recipient_clean": ["Test_clean"],
+        }
+    )
 
-    ledger.mapping = mapping_stub
-
-    ledger.update_tx_mapping()
+    ledger._update_tx_mapping()
     assert set(ledger.tx["recipient"]) == {"Test"}
     assert set(ledger.tx["recipient_clean"]) == {"Test_clean"}
     assert set(ledger.tx["label1"]) == {"test1"}
@@ -143,35 +123,44 @@ def test_update_tx_mapping(
     assert set(ledger.tx["occurence"]) == {1000}
 
 
-def test_init_history(
-    output_dir: Path, export_path: Path, coalesce_stub: pd.DataFrame
-) -> None:
+def test_init_history(output_dir: Path, export_path: Path) -> None:
     """Tests if the history is initialised correctly."""
     ledger = Ledger(output_dir=output_dir, bank="dkb")
-    ledger.init_tx(export_path)
-    ledger.init_metadata(export_path)
-    ledger.update_mapping()
-    ledger.update_tx_mapping()
-    ledger.init_history()
+    ledger._init_tx(export_path)
+    ledger._init_metadata(export_path)
+    ledger._update_mapping()
+    ledger._update_tx_mapping()
+    ledger._init_history()
 
     assert set(ledger.history["date"]) == {datetime(2021, 1, 1)}
     assert set(ledger.history["balance"]) == {1000.01}
 
 
-def test_init_c(
-    output_dir: Path, export_path: Path, coalesce_stub: pd.DataFrame
-) -> None:
+def test_init_c(output_dir: Path, export_path: Path) -> None:
     """Tests if coalesced transactions are generated correctly."""
     ledger = Ledger(output_dir=output_dir, bank="dkb")
-    ledger.init_tx(export_path)
-    ledger.init_metadata(export_path)
-    ledger.update_mapping()
-    ledger.update_tx_mapping()
+    ledger._init_tx(export_path)
+    ledger._init_metadata(export_path)
+    ledger._update_mapping()
+    ledger._update_tx_mapping()
+
+    coalesce_stub = pd.DataFrame(
+        {
+            "date_custom": [pd.to_datetime("1999-01-01")],
+            "label1_custom": ["test_custom"],
+            "label2_custom": ["test_custom"],
+            "label3_custom": ["test_custom"],
+            "recipient_clean_custom": ["test_custom"],
+            "recipient_clean": ["test_custom"],
+            "occurence_custom": [8888],
+            "amount_custom": [9999],
+        }
+    )
 
     ledger.tx = ledger.tx.drop(columns=coalesce_stub.columns)
     ledger.tx = pd.concat([ledger.tx, coalesce_stub], axis=1, verify_integrity=True)
 
-    ledger.init_tx_c()
+    ledger._init_tx_c()
 
     assert set(ledger.tx_c["date"]) == {datetime(1999, 1, 1)}
     assert set(ledger.tx_c["label1"]) == {"test_custom"}
@@ -182,21 +171,27 @@ def test_init_c(
     assert set(ledger.tx_c["amount"]) == {9999}
 
 
-def test_init_tx_d(
-    output_dir: Path, export_path: Path, distribute_stub: pd.DataFrame
-) -> None:
+def test_init_tx_d(output_dir: Path, export_path: Path) -> None:
     """Tests if distributed transactions are generated correctly."""
     ledger = Ledger(output_dir=output_dir, bank="dkb")
-    ledger.init_tx(export_path)
-    ledger.init_metadata(export_path)
-    ledger.update_mapping()
-    ledger.update_tx_mapping()
+    ledger._init_tx(export_path)
+    ledger._init_metadata(export_path)
+    ledger._update_mapping()
+    ledger._update_tx_mapping()
 
+    tmp = pd.to_datetime("2021-06-01")
+    distribute_stub = pd.DataFrame(
+        {
+            "date": [tmp, tmp, tmp],
+            "amount": [60, -60, 60],
+            "occurence": [2, -2, 0],
+        }
+    )
     ledger.tx = ledger.tx.drop(columns=distribute_stub.columns)
     ledger.tx = pd.concat([ledger.tx, distribute_stub], axis=1, verify_integrity=True)
 
-    ledger.init_tx_c()
-    ledger.init_tx_d()
+    ledger._init_tx_c()
+    ledger._init_tx_d()
 
     assert ledger.tx_d.shape[0] == 5
     assert set(ledger.tx_d["date"]) == {
@@ -245,27 +240,3 @@ def test_update(output_dir: Path, export_path: Path) -> None:
     # update without new export
     ledger.update()
     assert ledger.tx.shape == (3, 15)
-
-
-def test_metadata(output_dir: Path, export_path: Path) -> None:
-    """Tests for falling back to existing metadata."""
-    # init without bank
-    with pytest.raises(Exception) as exc_info:
-        ledger = Ledger(output_dir, bank=None)
-    assert (
-        str(exc_info.value)
-        == "Please supply a valid BANK! Couldn't read BANK from metadata."
-    )
-
-    # setup existing files
-    ledger = Ledger(output_dir, bank="dkb")
-    ledger.update(export_path)
-    ledger.write()
-
-    assert ledger.metadata.empty is False
-    assert ledger.metadata["bank"].iloc[0] == "dkb"
-    assert (output_dir / "metadata.csv").exists()
-
-    # init with bank
-    ledger = Ledger(output_dir, bank=None)
-    assert ledger.metadata["bank"].iloc[0] == "dkb"
