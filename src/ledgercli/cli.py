@@ -13,20 +13,43 @@ def cli() -> None:
     pass
 
 
-@click.command()
-@click.option(
-    "-o",
-    "--output-dir",
-    type=click.Path(
-        exists=True,
-        file_okay=False,
-        dir_okay=True,
-        writable=True,
-        readable=True,
-        path_type=Path,
-    ),
-    help="Specify a directory where output will get written to. Defaults to current working dir.",
-)
+def common_options(function):
+    """Reuse common options."""
+    function = click.option(
+        "-o",
+        "--output-dir",
+        type=click.Path(
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            writable=True,
+            readable=True,
+            path_type=Path,
+        ),
+        default=Path.cwd(),
+        help="Specify a directory where output will get written to. Defaults to current working dir.",
+    )(function)
+    function = click.option(
+        "-b",
+        "--bank",
+        type=click.Choice(BankInterface().list_banks()),
+        nargs=1,
+        help="Specify from which bank your export is from. If none is specified, bank_format falls back to metadata in output_dir.",
+    )(function)
+    return function
+
+
+@click.command("update")
+@common_options
+def update(output_dir: Path | None, bank: str | None) -> None:
+    """Updates the Ledger."""
+    ledger = Ledger(output_dir=output_dir, bank=bank)
+    ledger.update(export_path=None)
+    ledger.write()
+
+
+@click.command("import")
+@common_options
 @click.option(
     "-e",
     "--export_path",
@@ -38,24 +61,18 @@ def cli() -> None:
         readable=True,
         path_type=Path,
     ),
-    default=Path().cwd(),
+    default=None,
     help="Specify a path to an export in order to add new transactions to your ledger. If left empty, ledger will just update.",
 )
-@click.option(
-    "-b",
-    "--bank",
-    type=click.Choice(BankInterface().list_banks()),
-    nargs=1,
-    help="Specify from which bank your export is from. If none is specified, bank_format will be read from metadata in output_dir.",
-)
-def update(output_dir: Path, export_path: Path | None, bank: str | None) -> None:
-    """Updates the Ledger."""
+def import_tx(output_dir: Path | None, export_path: Path, bank: str | None) -> None:
+    """Imports transactions and updates the Ledger."""
     ledger = Ledger(output_dir=output_dir, bank=bank)
     ledger.update(export_path=export_path)
     ledger.write()
 
 
 cli.add_command(update)
+cli.add_command(import_tx)
 
 
 if __name__ == "__main__":
