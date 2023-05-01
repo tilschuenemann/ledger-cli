@@ -1,5 +1,7 @@
 """CLI for using the Ledger."""
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import click
 
@@ -13,7 +15,7 @@ def cli() -> None:
     pass
 
 
-def common_options(function):
+def common_options(function: Callable[..., Any]) -> Callable[..., Any]:
     """Reuse common options."""
     function = click.option(
         "-o",
@@ -39,16 +41,16 @@ def common_options(function):
     return function
 
 
-@click.command("update")
+@cli.command("update")
 @common_options
-def update(output_dir: Path | None, bank: str | None) -> None:
+def update_mp(output_dir: Path, bank: str | None) -> None:
     """Updates the Ledger."""
     ledger = Ledger(output_dir=output_dir, bank=bank)
     ledger.update(export_path=None)
     ledger.write()
 
 
-@click.command("import")
+@cli.command("import")
 @common_options
 @click.option(
     "-e",
@@ -64,16 +66,8 @@ def update(output_dir: Path | None, bank: str | None) -> None:
     default=None,
     help="Specify a path to an export in order to add new transactions to your ledger. If left empty, ledger will just update.",
 )
-def import_tx(output_dir: Path | None, export_path: Path, bank: str | None) -> None:
+def import_tx(output_dir: Path, export_path: Path, bank: str | None) -> None:
     """Imports transactions and updates the Ledger."""
     ledger = Ledger(output_dir=output_dir, bank=bank)
     ledger.update(export_path=export_path)
     ledger.write()
-
-
-cli.add_command(update)
-cli.add_command(import_tx)
-
-
-if __name__ == "__main__":
-    cli()

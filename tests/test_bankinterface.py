@@ -21,13 +21,13 @@ def test_bankinterfaces() -> None:
 
     with pytest.raises(Exception) as exc_info:
         BankInterface().get_start_balance(bank="not-supported", export_path=Path.cwd())
-    assert str(exc_info.value) == "'The bank you provided is not supported.'"
+    assert exc_info.value.args[0] == "The bank you provided is not supported."
     with pytest.raises(Exception) as exc_info:
         BankInterface().get_end_balance(bank="not-supported", export_path=Path.cwd())
-    assert str(exc_info.value) == "'The bank you provided is not supported.'"
+    assert exc_info.value.args[0] == "The bank you provided is not supported."
     with pytest.raises(Exception) as exc_info:
         BankInterface().get_metadata(bank="not-supported", export_path=Path.cwd())
-    assert str(exc_info.value) == "'The bank you provided is not supported.'"
+    assert exc_info.value.args[0] == "The bank you provided is not supported."
 
 
 @pytest.mark.parametrize(
@@ -55,7 +55,8 @@ def test_bankinterface(
         np.isnan(BankInterface().get_start_balance(bank, export_path))
         == is_start_balance_nan
     )
-    if is_start_balance_nan is False:
+    # skip coverage of next branch, no bank for this case yet
+    if is_start_balance_nan is False:  # pragma: no cover
         assert BankInterface().get_start_balance(bank, export_path) == start_balance
 
     assert (
@@ -79,6 +80,6 @@ def test_empty_export(bank: str, empty_export_path: Path) -> None:
     with pytest.raises(Exception) as exc_info:
         BankInterface().get_transactions(bank, empty_export_path)
     assert (
-        str(exc_info.value)
+        exc_info.value.args[0]
         == "The provided export contains no transactions. Please supply a non-empty export!"
     )
