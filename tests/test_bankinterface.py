@@ -57,16 +57,15 @@ def test_bankinterface(
     """Tests BankInterface methods with valid and empty exports.
 
     Args:
-        bank_fmt:
-        export_path:
+        bank_fmt: a bank format
+        export_path: path to export
         is_export_empty: true if export is empty
         is_start_balance_nan: true if start balance is nan
         is_end_balance_nan: true if end balance is nan
-        start_balance:
-        end_balance:
+        start_balance: expected start balance
+        end_balance: expected end balance
 
     """
-
     if is_export_empty:
         with pytest.raises(Exception) as exc_info:
             BankInterface().get_transactions(bank_fmt, export_path)

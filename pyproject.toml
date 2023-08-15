@@ -61,7 +61,8 @@ select = ["E", "F",
 line-length = 120
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 target-version = "py311"
-
+src = ["src", "test"]
+ignore = ["S101","E501"]
 [tool.ruff.pydocstyle]
 convention = "google"
 
@@ -78,11 +79,6 @@ source = ["ledgercli", "tests"]
 
 [tool.coverage.report]
 show_missing = true
-
-[tool.isort]
-profile = "black"
-force_single_line = true
-lines_after_imports = 2
 
 [tool.mypy]
 strict = true

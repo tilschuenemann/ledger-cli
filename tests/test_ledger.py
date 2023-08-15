@@ -87,10 +87,10 @@ def test_init_mapping(output_dir: Path, export_path: Path) -> None:
 
     assert set(ledger.mapping["recipient"]) == {"Test"}
     assert set(ledger.mapping["occurence"]) == {0}
-    assert ledger.mapping["label1"].isnull().sum() == 1
-    assert ledger.mapping["label2"].isnull().sum() == 1
-    assert ledger.mapping["label3"].isnull().sum() == 1
-    assert ledger.mapping["recipient_clean"].isnull().sum() == 1
+    assert ledger.mapping["label1"].isna().sum() == 1
+    assert ledger.mapping["label2"].isna().sum() == 1
+    assert ledger.mapping["label3"].isna().sum() == 1
+    assert ledger.mapping["recipient_clean"].isna().sum() == 1
 
 
 def test_update_tx_mapping(output_dir: Path, export_path: Path) -> None:

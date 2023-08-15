@@ -34,9 +34,7 @@ class Ledger:
             try:
                 self.bank_fmt = self.metadata["bank"].iloc[0]
             except Exception as exc:
-                raise Exception(
-                    "Please supply a valid BANK_FMT! Couldn't read BANK_FMT from metadata."
-                ) from exc
+                raise Exception("Please supply a valid BANK_FMT! Couldn't read BANK_FMT from metadata.") from exc
         else:
             if bank_fmt in BankInterface().list_bank_fmts():
                 self.bank_fmt = bank_fmt
@@ -66,9 +64,7 @@ class Ledger:
         Args:
             export_path: path to export
         """
-        tmp = BankInterface().get_transactions(
-            bank_fmt=self.bank_fmt, export_path=export_path
-        )
+        tmp = BankInterface().get_transactions(bank_fmt=self.bank_fmt, export_path=export_path)
         self.tx = pd.concat([self.tx, tmp])
 
     def _init_metadata(self, export_path: Path) -> None:
@@ -77,9 +73,7 @@ class Ledger:
         Args:
             export_path: path to export
         """
-        self.metadata = BankInterface().get_metadata(
-            bank_fmt=self.bank_fmt, export_path=export_path
-        )
+        self.metadata = BankInterface().get_metadata(bank_fmt=self.bank_fmt, export_path=export_path)
 
     def _update_mapping(self) -> None:
         """Adds new transaction recipients to mapping table.
@@ -92,9 +86,7 @@ class Ledger:
         new_recipients = tx_recipients - mp_recipients
         new_mapping = pd.DataFrame(new_recipients, columns=["recipient"])
 
-        self.mapping = pd.concat(
-            [self.mapping, new_mapping], ignore_index=True
-        ).sort_values("recipient")
+        self.mapping = pd.concat([self.mapping, new_mapping], ignore_index=True).sort_values("recipient")
         self.mapping["occurence"] = self.mapping["occurence"].fillna(0)
 
     def _update_tx_mapping(self) -> None:
@@ -144,9 +136,7 @@ class Ledger:
     def _init_tx_d(self) -> None:
         """Distributes coalesced transactions based on occurence."""
         tmp = self.tx_c
-        mask = pd.notna(tmp["occurence"]) & ~tmp["occurence"].between(
-            -1, 1, inclusive="both"
-        )
+        mask = pd.notna(tmp["occurence"]) & ~tmp["occurence"].between(-1, 1, inclusive="both")
         distribute = tmp.loc[mask].copy()
         keep = tmp.loc[~mask].copy()
 
@@ -175,9 +165,7 @@ class Ledger:
         after coalescing or distributing.
         """
         tmp = self.tx.groupby(["date"], as_index=False)["amount"].sum()
-        tmp["balance"] = (
-            tmp["amount"].cumsum() + self.metadata["starting_balance"].iloc[0]
-        )
+        tmp["balance"] = tmp["amount"].cumsum() + self.metadata["starting_balance"].iloc[0]
         self.history = tmp
 
     def update(self, export_path: Path | None = None) -> None:
@@ -294,9 +282,7 @@ class Ledger:
         )
         self.tx_d = self.tx_c.copy()
 
-        self.mapping = pd.DataFrame(
-            {"recipient": pd.Series(dtype=str), **mapping_schema}
-        )
+        self.mapping = pd.DataFrame({"recipient": pd.Series(dtype=str), **mapping_schema})
         self.metadata = pd.DataFrame(
             {
                 "starting_balance": pd.Series(dtype=float),
