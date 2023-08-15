@@ -28,8 +28,6 @@ ledger-cli strives to achieve two goals regarding your personal finance:
 1. Providing you with an easy format for fine-tuning your transactions.
 2. Serving a local dashboard for easy analysis and interpration.
 
-[For a more in-depth view, take a look at the features here.]()
-
 ## Installation
 
 You can install _ledger-cli_ via [pip] from [PyPI]:
