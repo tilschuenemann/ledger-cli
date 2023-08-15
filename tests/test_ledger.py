@@ -40,14 +40,12 @@ def test_initialisation(output_dir: Path, export_path: Path) -> None:
     assert ledger.output_dir == Path.cwd()
 
     # bank not supported
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(Exception, match="Please supply a valid BANK_FMT!"):
         ledger = Ledger(output_dir=output_dir, bank_fmt="not-supported")
-    assert str(exc_info.value) == "'Please supply a valid BANK_FMT!'"
 
     # init without bank, no metadata fallback
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(Exception, match="Please supply a valid BANK_FMT! Couldn't read BANK_FMT from metadata."):
         ledger = Ledger(output_dir, bank_fmt=None)
-    assert str(exc_info.value) == "Please supply a valid BANK_FMT! Couldn't read BANK_FMT from metadata."
 
     # init without bank, fallback to metadata
     ledger = Ledger(output_dir, bank_fmt="dkb")

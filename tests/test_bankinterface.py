@@ -19,21 +19,17 @@ def test_bankinterfaces() -> None:
     # valid formats
     assert BankInterface().list_bank_fmts() == ["dkb", "sp"]
 
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(Exception, match="The bank_fmt you provided is not supported."):
         BankInterface().get_transactions(bank_fmt="not-supported", export_path=Path.cwd())
-    assert exc_info.value.args[0] == "The bank_fmt you provided is not supported."
 
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(Exception, match="The bank_fmt you provided is not supported."):
         BankInterface().get_start_balance(bank_fmt="not-supported", export_path=Path.cwd())
-    assert exc_info.value.args[0] == "The bank_fmt you provided is not supported."
 
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(Exception, match="The bank_fmt you provided is not supported."):
         BankInterface().get_end_balance(bank_fmt="not-supported", export_path=Path.cwd())
-    assert exc_info.value.args[0] == "The bank_fmt you provided is not supported."
 
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(Exception, match="The bank_fmt you provided is not supported."):
         BankInterface().get_metadata(bank_fmt="not-supported", export_path=Path.cwd())
-    assert exc_info.value.args[0] == "The bank_fmt you provided is not supported."
 
 
 @pytest.mark.parametrize(
@@ -67,11 +63,10 @@ def test_bankinterface(
 
     """
     if is_export_empty:
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(
+            Exception, match="The provided export contains no transactions. Please supply a non-empty export!"
+        ):
             BankInterface().get_transactions(bank_fmt, export_path)
-        assert (
-            exc_info.value.args[0] == "The provided export contains no transactions. Please supply a non-empty export!"
-        )
         return
 
     tx = BankInterface().get_transactions(bank_fmt, export_path)
