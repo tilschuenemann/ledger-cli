@@ -33,10 +33,10 @@ def common_options(function: Callable[..., Any]) -> Callable[..., Any]:
     )(function)
     function = click.option(
         "-b",
-        "--bank",
+        "--bank_fmt",
         type=click.Choice(BankInterface().list_bank_fmts()),
         nargs=1,
-        help="Specify from which bank your export is from. If none is specified, bank_format falls back to metadata in output_dir.",
+        help="Specify from which bank your export is from. If none is specified, bank_fmt falls back to its specification in metadata.csv in output_dir.",
     )(function)
     return function
 
