@@ -32,19 +32,10 @@ Pygments = ">=2.10.0"
 black = ">=21.10b0"
 coverage = {extras = ["toml"], version = ">=6.2"}
 darglint = ">=1.8.1"
-flake8 = ">=4.0.1"
-flake8-bandit = ">=2.1.2"
-flake8-bugbear = ">=21.9.2"
-flake8-docstrings = ">=1.6.0"
-flake8-rst-docstrings = ">=0.2.5"
-isort = ">=5.10.1"
 mypy = ">=0.930"
-pep8-naming = ">=0.12.1"
 pre-commit = ">=2.16.0"
 pre-commit-hooks = ">=4.1.0"
 pytest = ">=6.2.5"
-pyupgrade = ">=2.29.1"
-safety = ">=1.10.3"
 sphinx = ">=4.3.2"
 sphinx-autobuild = ">=2021.3.14"
 sphinx-click = ">=3.0.2"
@@ -52,6 +43,30 @@ typeguard = ">=2.13.3"
 xdoctest = {extras = ["colors"], version = ">=0.15.10"}
 myst-parser = {version = ">=0.16.1"}
 sphinx-rtd-theme = "^1.1.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.284"
+
+[tool.ruff]
+select = ["E", "F",
+"I",    # isort
+"S",    # flake8-bandit
+"B",    # bugbear
+"PD",   # pandas vet
+"N",    # pep8-naming
+"UP",   # pyupgrade
+"D",    # pydocstyle
+"C4",   # comprehensions
+]
+line-length = 120
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+target-version = "py311"
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[tool.black]
+line-length=120
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
