@@ -25,9 +25,9 @@ def export_path() -> Path:
 def test_initialisation(output_dir: Path, export_path: Path) -> None:
     """Tests if the ledger gets initialised correctly."""
     # valid input
-    ledger = Ledger(output_dir=output_dir, bank="dkb")
+    ledger = Ledger(output_dir=output_dir, bank_fmt="dkb")
     assert ledger.output_dir == output_dir
-    assert ledger.bank == "dkb"
+    assert ledger.bank_fmt == "dkb"
     assert ledger.tx.empty
     assert ledger.tx_c.empty
     assert ledger.tx_d.empty
@@ -36,24 +36,21 @@ def test_initialisation(output_dir: Path, export_path: Path) -> None:
     assert ledger.mapping.empty
 
     # non existing output_dir defaults to cwd
-    ledger = Ledger(output_dir=(output_dir / "not-existing"), bank="dkb")
+    ledger = Ledger(output_dir=(output_dir / "not-existing"), bank_fmt="dkb")
     assert ledger.output_dir == Path.cwd()
 
     # bank not supported
     with pytest.raises(Exception) as exc_info:
-        ledger = Ledger(output_dir=output_dir, bank="not-supported")
-    assert str(exc_info.value) == "'Please supply a valid BANK!'"
+        ledger = Ledger(output_dir=output_dir, bank_fmt="not-supported")
+    assert str(exc_info.value) == "'Please supply a valid BANK_FMT!'"
 
     # init without bank, no metadata fallback
     with pytest.raises(Exception) as exc_info:
-        ledger = Ledger(output_dir, bank=None)
-    assert (
-        str(exc_info.value)
-        == "Please supply a valid BANK! Couldn't read BANK from metadata."
-    )
+        ledger = Ledger(output_dir, bank_fmt=None)
+    assert str(exc_info.value) == "Please supply a valid BANK_FMT! Couldn't read BANK_FMT from metadata."
 
     # init without bank, fallback to metadata
-    ledger = Ledger(output_dir, bank="dkb")
+    ledger = Ledger(output_dir, bank_fmt="dkb")
     ledger.update(export_path)
     ledger.write()
 
@@ -61,20 +58,20 @@ def test_initialisation(output_dir: Path, export_path: Path) -> None:
     assert ledger.metadata["bank"].iloc[0] == "dkb"
     assert (output_dir / "metadata.csv").exists()
 
-    ledger = Ledger(output_dir, bank=None)
+    ledger = Ledger(output_dir, bank_fmt=None)
     assert ledger.metadata["bank"].iloc[0] == "dkb"
 
 
 def test_init_tx(output_dir: Path, export_path: Path) -> None:
     """Tests if transactions get read."""
-    ledger = Ledger(output_dir=output_dir, bank="dkb")
+    ledger = Ledger(output_dir=output_dir, bank_fmt="dkb")
     ledger._init_tx(export_path=export_path)
     assert ledger.tx.empty is False
 
 
 def test_init_metadata(output_dir: Path, export_path: Path) -> None:
     """Tests for metadata generation."""
-    ledger = Ledger(output_dir=output_dir, bank="dkb")
+    ledger = Ledger(output_dir=output_dir, bank_fmt="dkb")
     ledger._init_tx(export_path=export_path)
     ledger._init_metadata(export_path=export_path)
     assert set(ledger.metadata["starting_balance"]) == {0}
@@ -83,7 +80,7 @@ def test_init_metadata(output_dir: Path, export_path: Path) -> None:
 
 def test_init_mapping(output_dir: Path, export_path: Path) -> None:
     """Tests for mapping generation."""
-    ledger = Ledger(output_dir=output_dir, bank="dkb")
+    ledger = Ledger(output_dir=output_dir, bank_fmt="dkb")
     ledger._init_tx(export_path=export_path)
     ledger._init_metadata(export_path=export_path)
     ledger._update_mapping()
@@ -98,7 +95,7 @@ def test_init_mapping(output_dir: Path, export_path: Path) -> None:
 
 def test_update_tx_mapping(output_dir: Path, export_path: Path) -> None:
     """Tests if updating transactions with mapping is done correctly."""
-    ledger = Ledger(output_dir=output_dir, bank="dkb")
+    ledger = Ledger(output_dir=output_dir, bank_fmt="dkb")
     ledger._init_tx(export_path=export_path)
     ledger._init_metadata(export_path=export_path)
     ledger._update_mapping()
@@ -125,7 +122,7 @@ def test_update_tx_mapping(output_dir: Path, export_path: Path) -> None:
 
 def test_init_history(output_dir: Path, export_path: Path) -> None:
     """Tests if the history is initialised correctly."""
-    ledger = Ledger(output_dir=output_dir, bank="dkb")
+    ledger = Ledger(output_dir=output_dir, bank_fmt="dkb")
     ledger._init_tx(export_path)
     ledger._init_metadata(export_path)
     ledger._update_mapping()
@@ -138,7 +135,7 @@ def test_init_history(output_dir: Path, export_path: Path) -> None:
 
 def test_init_c(output_dir: Path, export_path: Path) -> None:
     """Tests if coalesced transactions are generated correctly."""
-    ledger = Ledger(output_dir=output_dir, bank="dkb")
+    ledger = Ledger(output_dir=output_dir, bank_fmt="dkb")
     ledger._init_tx(export_path)
     ledger._init_metadata(export_path)
     ledger._update_mapping()
@@ -173,7 +170,7 @@ def test_init_c(output_dir: Path, export_path: Path) -> None:
 
 def test_init_tx_d(output_dir: Path, export_path: Path) -> None:
     """Tests if distributed transactions are generated correctly."""
-    ledger = Ledger(output_dir=output_dir, bank="dkb")
+    ledger = Ledger(output_dir=output_dir, bank_fmt="dkb")
     ledger._init_tx(export_path)
     ledger._init_metadata(export_path)
     ledger._update_mapping()
@@ -204,7 +201,7 @@ def test_init_tx_d(output_dir: Path, export_path: Path) -> None:
 
 def test_write(output_dir: Path, export_path: Path) -> None:
     """Tests if all tables are written."""
-    ledger = Ledger(output_dir=output_dir, bank="dkb")
+    ledger = Ledger(output_dir=output_dir, bank_fmt="dkb")
     ledger.update(export_path)
     ledger.write()
 
@@ -222,11 +219,11 @@ def test_write(output_dir: Path, export_path: Path) -> None:
 def test_update(output_dir: Path, export_path: Path) -> None:
     """Tests for updating existing files."""
     # setup existing files
-    ledger = Ledger(output_dir, bank="dkb")
+    ledger = Ledger(output_dir, bank_fmt="dkb")
     ledger.update(export_path)
     ledger.write()
 
-    ledger = Ledger(output_dir, bank="dkb")
+    ledger = Ledger(output_dir, bank_fmt="dkb")
 
     assert ledger.tx.shape == (1, 15)
     assert ledger.mapping.empty is False

@@ -43,9 +43,9 @@ def common_options(function: Callable[..., Any]) -> Callable[..., Any]:
 
 @cli.command("update")
 @common_options
-def update_mp(output_dir: Path, bank: str | None) -> None:
+def update_mp(output_dir: Path, bank_fmt: str | None) -> None:
     """Updates the Ledger."""
-    ledger = Ledger(output_dir=output_dir, bank=bank)
+    ledger = Ledger(output_dir=output_dir, bank_fmt=bank_fmt)
     ledger.update(export_path=None)
     ledger.write()
 
@@ -66,8 +66,8 @@ def update_mp(output_dir: Path, bank: str | None) -> None:
     default=None,
     help="Specify a path to an export in order to add new transactions to your ledger. If left empty, ledger will just update.",
 )
-def import_tx(output_dir: Path, export_path: Path, bank: str | None) -> None:
+def import_tx(output_dir: Path, export_path: Path, bank_fmt: str | None) -> None:
     """Imports transactions and updates the Ledger."""
-    ledger = Ledger(output_dir=output_dir, bank=bank)
+    ledger = Ledger(output_dir=output_dir, bank_fmt=bank_fmt)
     ledger.update(export_path=export_path)
     ledger.write()
