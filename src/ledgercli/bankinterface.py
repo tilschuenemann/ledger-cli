@@ -32,6 +32,7 @@ class BankInterface:
             transactions dataframe
 
         Raises:
+            KeyError: bad bank_fmt
             Exception: if parsed export has no transactions
         """
         if bank_fmt not in BankInterface().list_bank_fmts():
@@ -79,6 +80,9 @@ class BankInterface:
 
         Returns:
             start balance of given export
+
+        Raises:
+            KeyError: bad bank_fmt
         """
         if bank_fmt not in BankInterface().list_bank_fmts():
             raise KeyError("The bank_fmt you provided is not supported.")
@@ -103,7 +107,7 @@ class BankInterface:
           end balance of given export
 
         Raises:
-          KeyError: if bank_fmt is not supported
+            KeyError: bad bank_fmt
         """
         if bank_fmt not in BankInterface().list_bank_fmts():
             raise KeyError("The bank_fmt you provided is not supported.")
