@@ -1,6 +1,7 @@
 """BankInterface.
 
-This module provides an easily extendable interface for reading transactions from a file."""
+This module provides an easily extendable interface for reading transactions from a file.
+"""
 from pathlib import Path
 
 import numpy as np
@@ -63,7 +64,9 @@ class BankInterface:
             tx.columns = ["date", "recipient", "amount"]
 
         if tx.empty:
-            raise Exception("The provided export contains no transactions. Please supply a non-empty export!")
+            raise Exception(
+                "The provided export contains no transactions. Please supply a non-empty export!"
+            )
         return tx
 
     @staticmethod
@@ -122,7 +125,9 @@ class BankInterface:
             )
 
             # locale.atof not used here as de_DE locale needs to be installed
-            end_balance = float(header.iloc[2, 1].replace(".", "").replace(",", ".").replace(" EUR", ""))
+            end_balance = float(
+                header.iloc[2, 1].replace(".", "").replace(",", ".").replace(" EUR", "")
+            )
 
         return end_balance
 
@@ -140,8 +145,12 @@ class BankInterface:
         Returns:
             dataframe
         """
-        tmp_start_balance = BankInterface().get_start_balance(bank_fmt=bank_fmt, export_path=export_path)
-        end_balance = BankInterface().get_end_balance(bank_fmt=bank_fmt, export_path=export_path)
+        tmp_start_balance = BankInterface().get_start_balance(
+            bank_fmt=bank_fmt, export_path=export_path
+        )
+        end_balance = BankInterface().get_end_balance(
+            bank_fmt=bank_fmt, export_path=export_path
+        )
 
         start_balance: float = 0.0
 
