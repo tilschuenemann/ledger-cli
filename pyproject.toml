@@ -22,7 +22,7 @@ Changelog = "https://github.com/tilschuenemann/ledger-cli/releases"
 ledgercli = "ledgercli.cli:cli"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 click = ">=8.0.1"
 pandas = "^1.5.2"
 numpy = "^1.23.5"
