@@ -38,7 +38,7 @@ class Ledger:
                     "Please supply a valid BANK! Couldn't read BANK from metadata."
                 ) from exc
         else:
-            if bank in BankInterface().list_banks():
+            if bank in BankInterface().list_bank_fmts():
                 self.bank = bank
             else:
                 raise KeyError("Please supply a valid BANK!")
@@ -66,7 +66,9 @@ class Ledger:
         Args:
           export_path: path to export
         """
-        tmp = BankInterface().get_transactions(bank=self.bank, export_path=export_path)
+        tmp = BankInterface().get_transactions(
+            bank_fmt=self.bank, export_path=export_path
+        )
         self.tx = pd.concat([self.tx, tmp])
 
     def _init_metadata(self, export_path: Path) -> None:
@@ -76,7 +78,7 @@ class Ledger:
           export_path: path to export
         """
         self.metadata = BankInterface().get_metadata(
-            bank=self.bank, export_path=export_path
+            bank_fmt=self.bank, export_path=export_path
         )
 
     def _update_mapping(self) -> None:
