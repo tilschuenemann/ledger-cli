@@ -104,7 +104,7 @@ class BankInterface:
             export_path: path to export
 
         Returns:
-          end balance of given export
+            end balance of given export
 
         Raises:
             KeyError: bad bank_fmt

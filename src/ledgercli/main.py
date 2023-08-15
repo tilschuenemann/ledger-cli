@@ -20,7 +20,7 @@ class Ledger:
             bank_fmt: which bank format to parse
 
         Raises:
-            Exception: if no bank is provided and bank can't be read from metadata file
+            KeyError: if no bank is provided and bank can't be read from metadata file
         """
         if output_dir is None or output_dir.exists() is False:
             self.output_dir = Path.cwd()
@@ -34,7 +34,7 @@ class Ledger:
             try:
                 self.bank_fmt = self.metadata["bank"].iloc[0]
             except Exception as exc:
-                raise Exception("Please supply a valid BANK_FMT! Couldn't read BANK_FMT from metadata.") from exc
+                raise KeyError("Please supply a valid BANK_FMT! Couldn't read BANK_FMT from metadata.") from exc
         else:
             if bank_fmt in BankInterface().list_bank_fmts():
                 self.bank_fmt = bank_fmt
