@@ -112,7 +112,7 @@ class Ledger:
         """Coalesces all custom values."""
         self.tx["date"] = pd.to_datetime(self.tx["date"])
         self.tx["date_custom"] = pd.to_datetime(self.tx["date_custom"])
-        tmp = self.tx.copy()
+        self.tx_c = self.tx.copy()
 
         coalesce_map = {
             "date": "date_custom",
@@ -126,12 +126,12 @@ class Ledger:
         }
 
         for k, v in coalesce_map.items():
-            tmp[k] = np.where(tmp[v].notna(), tmp[v], tmp[k])
-            tmp = tmp.drop(v, axis=1)
+            self.tx_c[v] = self.tx_c[v].replace("", np.nan)
+            self.tx_c[k] = np.where(self.tx_c[v].notna(), self.tx_c[v], self.tx_c[k])
+            self.tx_c = self.tx_c.drop(v, axis=1)
 
         # np.where above converts datetimes into ns
-        tmp["date"] = pd.to_datetime(tmp["date"], unit="ns")
-        self.tx_c = tmp
+        self.tx_c["date"] = pd.to_datetime(self.tx_c["date"], unit="ns")
 
     def _init_tx_d(self) -> None:
         """Distributes coalesced transactions based on occurence."""
