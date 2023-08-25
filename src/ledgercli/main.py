@@ -168,18 +168,19 @@ class Ledger:
         tmp["balance"] = tmp["amount"].cumsum() + self.metadata["starting_balance"].iloc[0]
         self.history = tmp
 
-    def update(self, export_path: Path | None = None) -> None:
-        """Wrapper for updating the Ledger.
+    def import_tx(self, export_path: Path) -> None:
+        """
 
         Args:
             export_path: path to export
         """
-        if export_path is not None:
-            self._init_tx(export_path=export_path)
+        self._init_tx(export_path=export_path)
 
-            if self.metadata.empty:
-                self._init_metadata(export_path=export_path)
+        if self.metadata.empty:
+            self._init_metadata(export_path=export_path)
 
+    def update(self) -> None:
+        """Wrapper for updating the Ledger."""
         self._update_mapping()
         self._update_tx_mapping()
         self._init_tx_c()

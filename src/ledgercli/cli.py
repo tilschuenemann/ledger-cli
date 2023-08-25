@@ -46,7 +46,7 @@ def common_options(function: Callable[..., Any]) -> Callable[..., Any]:
 def update_mp(output_dir: Path, bank_fmt: str | None) -> None:
     """Updates the Ledger."""
     ledger = Ledger(output_dir=output_dir, bank_fmt=bank_fmt)
-    ledger.update(export_path=None)
+    ledger.update()
     ledger.write()
 
 
@@ -69,5 +69,6 @@ def update_mp(output_dir: Path, bank_fmt: str | None) -> None:
 def import_tx(output_dir: Path, export_path: Path, bank_fmt: str | None) -> None:
     """Imports transactions and updates the Ledger."""
     ledger = Ledger(output_dir=output_dir, bank_fmt=bank_fmt)
-    ledger.update(export_path=export_path)
+    ledger.import_tx(export_path=export_path)
+    ledger.update()
     ledger.write()

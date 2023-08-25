@@ -49,7 +49,8 @@ def test_initialisation(output_dir: Path, export_path: Path) -> None:
 
     # init without bank, fallback to metadata
     ledger = Ledger(output_dir, bank_fmt="dkb")
-    ledger.update(export_path)
+    ledger.import_tx(export_path=export_path)
+    ledger.update()
     ledger.write()
 
     assert ledger.metadata.empty is False
@@ -200,7 +201,8 @@ def test_init_tx_d(output_dir: Path, export_path: Path) -> None:
 def test_write(output_dir: Path, export_path: Path) -> None:
     """Tests if all tables are written."""
     ledger = Ledger(output_dir=output_dir, bank_fmt="dkb")
-    ledger.update(export_path)
+    ledger.import_tx(export_path=export_path)
+    ledger.update()
     ledger.write()
 
     for item in [
@@ -218,7 +220,8 @@ def test_update(output_dir: Path, export_path: Path) -> None:
     """Tests for updating existing files."""
     # setup existing files
     ledger = Ledger(output_dir, bank_fmt="dkb")
-    ledger.update(export_path)
+    ledger.import_tx(export_path=export_path)
+    ledger.update()
     ledger.write()
 
     ledger = Ledger(output_dir, bank_fmt="dkb")
@@ -228,8 +231,10 @@ def test_update(output_dir: Path, export_path: Path) -> None:
     assert ledger.metadata.empty is False
 
     # adding more transactions
-    ledger.update(export_path)
-    ledger.update(export_path)
+    ledger.import_tx(export_path=export_path)
+    ledger.update()
+    ledger.import_tx(export_path=export_path)
+    ledger.update()
     assert ledger.tx.shape == (3, 15)
 
     # update without new export
