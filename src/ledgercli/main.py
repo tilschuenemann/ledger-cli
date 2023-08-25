@@ -205,7 +205,6 @@ class Ledger:
                 index=False,
                 date_format="%Y-%m-%d",
                 float_format="%.2f",
-                na_rep="",
             )
 
     def _assign_types(self) -> None:
