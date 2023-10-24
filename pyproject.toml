@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ledger-cli"
-version = "0.1.3"
+version = "0.1.4"
 description = "ledger-cli"
 authors = ["Til Schünemann <til.schuenemann@mailbox.org>"]
 license = "MIT"
