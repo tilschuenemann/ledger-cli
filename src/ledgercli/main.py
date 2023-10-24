@@ -169,10 +169,10 @@ class Ledger:
         self.history = tmp
 
     def import_tx(self, export_path: Path) -> None:
-        """
+        """Imports transactions.
 
         Args:
-            export_path: path to export
+            export_path: path to export.
         """
         self._init_tx(export_path=export_path)
 
