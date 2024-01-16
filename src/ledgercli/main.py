@@ -114,7 +114,7 @@ class Ledger:
         self.tx["date_custom"] = pd.to_datetime(self.tx["date_custom"])
         self.tx_c = self.tx.copy()
 
-        coalesce_map = {
+        auto_manual = {
             "date": "date_custom",
             "amount": "amount_custom",
             "recipient_clean": "recipient_clean_custom",
@@ -125,10 +125,10 @@ class Ledger:
             "recipient": "recipient_clean",
         }
 
-        for k, v in coalesce_map.items():
-            self.tx_c[v] = self.tx_c[v].replace("", np.nan)
-            self.tx_c[k] = np.where(self.tx_c[v].notna(), self.tx_c[v], self.tx_c[k])
-            self.tx_c = self.tx_c.drop(v, axis=1)
+        for auto, manual in auto_manual.items():
+            self.tx_c[manual] = self.tx_c[manual].replace("", np.nan)
+            self.tx_c[auto] = np.where(self.tx_c[manual].notna(), self.tx_c[manual], self.tx_c[auto])
+            self.tx_c = self.tx_c.drop(manual, axis=1)
 
         # np.where above converts datetimes into ns
         self.tx_c["date"] = pd.to_datetime(self.tx_c["date"], unit="ns")
@@ -136,7 +136,7 @@ class Ledger:
     def _init_tx_d(self) -> None:
         """Distributes coalesced transactions based on occurence."""
         tmp = self.tx_c
-        mask = pd.notna(tmp["occurence"]) & ~tmp["occurence"].between(-1, 1, inclusive="both")
+        mask = pd.notna(tmp["occurence"]) & ~tmp["occurence"].between(-1, 1, inclusive="both") 
         distribute = tmp.loc[mask].copy()
         keep = tmp.loc[~mask].copy()
 
@@ -190,7 +190,7 @@ class Ledger:
 
     def write(self) -> None:
         """Writes all tables to output_dir."""
-        write_map = {
+        fname_df = {
             "transactions": self.tx,
             "metadata": self.metadata,
             "mapping": self.mapping,
@@ -199,16 +199,16 @@ class Ledger:
             "tx_distributed": self.tx_d,
         }
 
-        for k, v in write_map.items():
-            v.to_csv(
-                self.output_dir / f"{k}.csv",
+        for fname, df in fname_df.items():
+            df.to_csv(
+                self.output_dir / f"{fname}.csv",
                 index=False,
                 date_format="%Y-%m-%d",
                 float_format="%.2f",
             )
 
     def _assign_types(self) -> None:
-        types = {
+        column_dtype = {
             # base format
             "amount": "float",
             "recipient": "str",
@@ -240,11 +240,11 @@ class Ledger:
         }
 
         for df in [self.tx, self.tx_c, self.tx_d, self.history, self.mapping]:
-            for k, v in types.items():
-                if k in df.columns:
-                    df[k] = df[k].astype(v)
-                    if k != "recipient" and v == "str":
-                        df[k] = df[k].replace("nan", "")
+            for column, dtype in column_dtype.items():
+                if column in df.columns:
+                    df[column] = df[column].astype(dtype)
+                    if column != "recipient" and dtype == "str":
+                        df[column] = df[column].replace("nan", "")
 
     def _create_template(self) -> None:
         """Creates internal dataframes with correct dtypes."""
